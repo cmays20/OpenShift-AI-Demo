@@ -1,0 +1,16 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager-operator-and-wildcard-cert
+  namespace: openshift-gitops
+spec:
+  destination:
+    server: 'https://kubernetes.default.svc'
+  project: default
+  source:
+    path: gitops/Operators/CertManager/aggregate
+    repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
