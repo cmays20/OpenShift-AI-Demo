@@ -5,3 +5,4 @@ resources:
   - namespace.yaml
   - subscription.yaml
   - namespace-cert-manager.yaml
+  - operator-group.yaml
