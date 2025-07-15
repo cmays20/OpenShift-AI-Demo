@@ -1,0 +1,3 @@
+resources:
+  - argocd-cert-manager-role.yaml
+  - argocd-cert-manager-rolebinding.yaml
