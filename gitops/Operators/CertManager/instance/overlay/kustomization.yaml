@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base/
+
+patches:
+  - target:
+      group: cert-manager.io
+      version: v1
+      kind: ClusterIssuer
+      name: acme-prod-issuer
+    patch: |-
+      - op: replace
+        path: /spec/acme/email
+        value: 'cmays@outlook.com'
+      - op: replace
+        path: /spec/acme/solvers/0/dns01/route53/hostedZoneID
+        value: Z04073352EXMX6CDAYFVK
+  - target:
+      group: cert-manager.io
+      version: v1
+      kind: Certificate
+      name: router-certs-letsencrypt
+    patch: |-
+      - op: replace
+        path: /spec/commonName
+        value: '*.apps.mays-demo.sandbox2891.opentlc.com'
+      - op: replace
+        path: /spec/dnsNames/0
+        value: '*.apps.mays-demo.sandbox2891.opentlc.com'

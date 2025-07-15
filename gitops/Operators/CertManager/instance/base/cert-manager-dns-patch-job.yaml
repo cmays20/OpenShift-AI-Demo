@@ -1,0 +1,64 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: cert-manager-dns-patch
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+rules:
+  - apiGroups:
+      - operator.openshift.io
+    resources:
+      - certmanagers
+    verbs:
+      - get
+      - list
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: cert-manager-dns-patch
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cert-manager-dns-patch
+subjects:
+  - kind: ServiceAccount
+    name: cert-manager-dns-patch-job-sa
+    namespace: cert-manager
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  name: cert-manager-dns-patch-job-sa
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: cert-manager
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+  name: cert-manager-dns-patch-job
+spec:
+  template:
+    spec:
+      containers:
+        - image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/usr/bin/env bash
+              oc patch CertManager cluster --type=merge --patch='{"spec":{"controllerConfig":{"overrideArgs":["--dns01-recursive-nameservers=8.8.8.8:53,1.1.1.1:53","--dns01-recursive-nameservers-only"]}}}'
+              exit $?
+          imagePullPolicy: Always
+          name: cert-manager-dns-patch-job
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      serviceAccountName: cert-manager-dns-patch-job-sa
+      terminationGracePeriodSeconds: 30

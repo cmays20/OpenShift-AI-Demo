@@ -1,0 +1,24 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: acme-prod-issuer
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  acme:
+    email: some@email.com
+    privateKeySecretRef:
+      name: letsencrypt-prod-issuer-account-key
+    server: 'https://acme-v02.api.letsencrypt.org/directory'
+    solvers:
+      - dns01:
+          route53:
+            accessKeyIDSecretRef:
+              key: aws_access_key_id
+              name: aws-credentials
+            hostedZoneID: somehostedzone
+            region: us-east-2
+            secretAccessKeySecretRef:
+              key: aws_secret_access_key
+              name: aws-credentials

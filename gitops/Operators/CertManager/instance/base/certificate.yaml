@@ -1,0 +1,23 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: router-certs-letsencrypt
+  namespace: openshift-ingress
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+  commonName: '*.apps.clustername.example.com'
+  dnsNames:
+    - '*.apps.clustername.example.com'
+  duration: 2160h0m0s
+  issuerRef:
+    kind: ClusterIssuer
+    name: acme-prod-issuer
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    rotationPolicy: Always
+    size: 2048
+  renewBefore: 720h0m0s
+  secretName: router-certs-letsencrypt
