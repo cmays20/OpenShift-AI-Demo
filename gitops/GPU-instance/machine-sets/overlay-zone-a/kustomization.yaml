@@ -1,0 +1,9 @@
+resources:
+  - ../base
+
+patches:
+  - target:
+      group: machine.openshift.io
+      version: v1beta1
+      kind: MachineSet
+    path: patch-zone-a.yaml

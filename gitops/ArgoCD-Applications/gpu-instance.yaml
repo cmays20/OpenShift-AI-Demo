@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gpu-instances
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  destination:
+    server: 'https://kubernetes.default.svc'
+  project: default
+  source:
+    path: gitops/GPU-instance/machine-sets/aggregate
+    repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      selfHeal: true
