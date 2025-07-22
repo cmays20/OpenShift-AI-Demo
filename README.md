@@ -6,21 +6,17 @@ Some words
 These are prerequisites
 1. Start with an OpenShift Cluster
 2. OpenShift GitOps Operator Installed (ArgoCD)
+3. Clone this repository
 
-## Setting up ArgoCD
+## Update the overlays for your current cluster
+The URLs and other cluster specific values will need to be updated in the clone of this repository.
+Here is a list of file that will need to be updated:
+1. [Cert Manager](/Operators/CertManager/instance/overlay/kustomization.yaml)
 
-### 1. Change the label that is used to identify ArgoCD owned objects
+### Create the ArgoCD Applications
+First, apply the file argocd-setup.yaml.  Make sure it fully completes.
 
-The default label used by ArgoCD is: `app.kubernetes.io/instance: some-application`.
-This label is sometimes used by other projects as well. This creates a conflict and can have negative side effects.
-Therefore, it is best to change it to something custom.  Reference: [ArgoCD Resource Tracking](https://argo-cd.readthedocs.io/en/latest/user-guide/resource_tracking/).
+Second, apply the demo-setup.yaml file.  This will create an App of Apps application that rolls everything else out.
 
-Add the following to the ArgoCD object that is created when installing the cluster:
-```yaml
-  extraConfig:
-    application.instanceLabelKey: argocd.argoproj.io/instance
-```
-
-Some more words
 ## Performing the Demo
 Don't screw it up
