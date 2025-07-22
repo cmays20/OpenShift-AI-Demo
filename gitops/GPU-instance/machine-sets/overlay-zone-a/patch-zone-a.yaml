@@ -30,7 +30,10 @@
   value: us-east-2
 - op: replace
   path: /spec/template/spec/providerSpec/value/securityGroups/0/filters/0/values/0
-  value: mays-demo-klcpq-worker-sg
+  value: mays-demo-klcpq-node
+- op: replace
+  path: /spec/template/spec/providerSpec/value/securityGroups/1/filters/0/values/0
+  value: mays-demo-klcpq-lb
 - op: replace
   path: /spec/template/spec/providerSpec/value/subnet/filters/0/values/0
   value: mays-demo-klcpq-subnet-private-us-east-2a
