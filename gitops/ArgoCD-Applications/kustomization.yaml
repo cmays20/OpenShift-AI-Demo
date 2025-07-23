@@ -2,3 +2,4 @@ resources:
   - argocd-permissions.yaml
   - cert-manager.yaml
   - gpu-instance.yaml
+  - rhoai.yaml
