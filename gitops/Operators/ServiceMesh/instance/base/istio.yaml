@@ -1,0 +1,18 @@
+apiVersion: sailoperator.io/v1alpha1
+kind: Istio
+metadata:
+  name: default
+spec:
+  namespace: istio-system
+  updateStrategy:
+    type: InPlace
+    inactiveRevisionDeletionGracePeriodSeconds: 30
+  values:
+    pilot:
+      autoscaleEnabled: false # <-- disable autoscaling
+      replicaCount: 2   # <-- number of desired replicas
+    meshConfig:
+      accessLogFile: /dev/stdout
+      discoverySelectors:
+        - matchLabels:
+            istio-discovery: enabled
