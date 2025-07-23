@@ -4,3 +4,4 @@ resources:
   - gpu-instance.yaml
   - rhoai.yaml
   - service-mesh.yaml
+  - serverless.yaml
