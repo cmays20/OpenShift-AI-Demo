@@ -3,5 +3,5 @@ resources:
   - cert-manager.yaml
   - gpu-instance.yaml
   - rhoai.yaml
-#  - service-mesh.yaml
+  - service-mesh.yaml
   - serverless.yaml
