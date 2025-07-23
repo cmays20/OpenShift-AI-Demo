@@ -1,0 +1,3 @@
+resources:
+  - argocd-rhoai-role.yaml
+  - argocd-rhoai-rolebinding.yaml
