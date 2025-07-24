@@ -41,7 +41,7 @@ spec:
           deviceIndex: 0
           iamInstanceProfile:
             id: <infrastructure_id>-worker-profile
-          instanceType: g6.2xlarge
+          instanceType: g5.2xlarge
           kind: AWSMachineProviderConfig
           placement:
             availabilityZone: <zone>
