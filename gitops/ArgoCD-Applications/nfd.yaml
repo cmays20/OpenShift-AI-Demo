@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: rhoai
+  name: nfd
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   destination:
     server: 'https://kubernetes.default.svc'
   project: default
   source:
-    path: gitops/Operators/RHOAI/aggregate
+    path: gitops/Operators/NodeFeatureDiscovery/aggregate
     repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
     targetRevision: HEAD
   syncPolicy:
