@@ -1,3 +1,6 @@
+commonAnnotations:
+  argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+
 resources:
   - ../operator/base
   - ../instance/base
