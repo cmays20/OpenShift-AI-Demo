@@ -1,6 +1,8 @@
 kind: DataScienceCluster
 apiVersion: datasciencecluster.opendatahub.io/v1
 metadata:
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
   labels:
     app.kubernetes.io/created-by: rhods-operator
     app.kubernetes.io/instance: default-dsc
