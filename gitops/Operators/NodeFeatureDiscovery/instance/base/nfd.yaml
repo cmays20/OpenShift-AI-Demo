@@ -117,8 +117,8 @@ spec:
   operand:
     imagePullPolicy: IfNotPresent
     servicePort: 12000
-  customConfig:
-    configData: |
+#  customConfig:
+#    configData: |
       #    - name: "more.kernel.features"
       #      matchOn:
       #      - loadedKMod: ["example_kmod3"]
