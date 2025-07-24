@@ -6,3 +6,4 @@ resources:
   - service-mesh.yaml
   - serverless.yaml
   - nfd.yaml
+  - nvidia.yaml
