@@ -1,0 +1,3 @@
+resources:
+  - argocd-nfd-role.yaml
+  - argocd-nfd-rolebinding.yaml

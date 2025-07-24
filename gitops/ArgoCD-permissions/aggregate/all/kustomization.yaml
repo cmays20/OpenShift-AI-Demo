@@ -1,3 +1,4 @@
 resources:
   - ../../cert-manager
   - ../../rhoai
+  - ../../nfd
