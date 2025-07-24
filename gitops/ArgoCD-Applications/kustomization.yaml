@@ -5,3 +5,4 @@ resources:
   - rhoai.yaml
   - service-mesh.yaml
   - serverless.yaml
+  - nfd.yaml
