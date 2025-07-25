@@ -1,0 +1,3 @@
+resources:
+  - argocd-nvidia-role.yaml
+  - argocd-nvidia-rolebinding.yaml
