@@ -1,0 +1,5 @@
+commonAnnotations:
+  argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+
+resources:
+  - gpu-cluster-policy.yaml
