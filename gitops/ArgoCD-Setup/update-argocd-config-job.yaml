@@ -64,7 +64,7 @@ spec:
             - -c
             - |
               #!/usr/bin/env bash
-              oc patch ArgoCD openshift-gitops -n openshift-gitops --type=merge --patch='{"spec":{"resourceExclusions":"- apiGroups:\n  - \"\"\n  kinds:\n  - Secret\n  clusters:\n  - \"*\"\n  nameRegex: \"^v4-0-config-user-idp-0-file-data$\""}}'
+              oc patch ArgoCD openshift-gitops -n openshift-gitops --type=merge --patch='{"spec":{"resourceExclusions":"- apiGroups:\n  - \"\"\n  kinds:\n  - Secret\n  clusters:\n  - \"*\"\n  name: \"v4-0-config-user-idp-0-file-data\""}}'
               exit $?
           imagePullPolicy: Always
           name: argocd-update-resource-exclusions-job
