@@ -7,3 +7,4 @@ resources:
   - serverless.yaml
   - nfd.yaml
   - nvidia.yaml
+  - oauth.yaml
