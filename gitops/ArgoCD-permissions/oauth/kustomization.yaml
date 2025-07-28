@@ -1,0 +1,3 @@
+resources:
+  - argocd-oauth-role.yaml
+  - argocd-oauth-rolebinding.yaml

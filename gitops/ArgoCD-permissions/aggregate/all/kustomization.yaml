@@ -3,3 +3,4 @@ resources:
   - ../../rhoai
   - ../../nfd
   - ../../nvidia
+  - ../../oauth
