@@ -16,7 +16,3 @@ spec:
   syncPolicy:
     automated:
       selfHeal: true
-  ignoreDifferences:
-    - group: ""
-      kind: Secret
-      name: v4-0-config-user-idp-0-file-data
