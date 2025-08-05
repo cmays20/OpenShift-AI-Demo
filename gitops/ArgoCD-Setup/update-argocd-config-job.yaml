@@ -89,7 +89,7 @@ spec:
             - -c
             - |
               #!/usr/bin/env bash
-              oc patch ArgoCD openshift-gitops -n openshift-gitops --type=merge --patch='{"spec":{"controller":{"env":[\n  {\n    "name": "ARGOCD_SYNC_WAVE_DELAY",\n    "value": "15"\n  }\n]}}}'
+              oc patch ArgoCD openshift-gitops -n openshift-gitops --type=merge --patch='{"spec":{"controller":{"env":[{"name": "ARGOCD_SYNC_WAVE_DELAY","value": "15"}]}}}'
               exit $?
           imagePullPolicy: Always
           name: argocd-update-sync-delay-job
