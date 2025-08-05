@@ -12,7 +12,7 @@ spec:
   source:
     path: gitops/Operators/RHOAI/aggregate
     repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
-    targetRevision: HEAD
+    targetRevision: cluster3
   syncPolicy:
     automated:
       selfHeal: true
