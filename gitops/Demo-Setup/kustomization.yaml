@@ -1,2 +1,2 @@
 resources:
-  - ../ArgoCD-Applications/
+  - ../ArgoCD-Applications/overlay
