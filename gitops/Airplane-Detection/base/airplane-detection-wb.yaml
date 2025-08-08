@@ -77,6 +77,8 @@ spec:
               name: trusted-ca
               readOnly: true
               subPath: ca-bundle.crt
+            - mountPath: /opt/app-root/pipeline-runtimes/
+              name: runtime-images
           image: 'image-registry.openshift-image-registry.svc:5000/redhat-ods-applications/minimal-gpu:2025.1'
           workingDir: /opt/app-root/src
         - resources:
@@ -175,4 +177,7 @@ spec:
           secret:
             defaultMode: 420
             secretName: airplane-detection-wb-tls
-
+        - configMap:
+            name: pipeline-runtime-images
+            optional: true
+          name: runtime-images
