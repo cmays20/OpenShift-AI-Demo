@@ -1,0 +1,37 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../base/
+
+configMapGenerator:
+  - name: environment-config
+    literals:
+      - baseUrl=https://rhods-dashboard-redhat-ods-applications.apps.mays-demo.sandbox844.opentlc.com
+      - logoutUrl=https://rhods-dashboard-redhat-ods-applications.apps.mays-demo.sandbox844.opentlc.com/projects/airplane-detection?notebookLogout=airplane-detection-wb
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: environment-config
+      fieldPath: data.baseUrl
+    targets:
+      - select:
+          group: kubeflow.org
+          version: v1
+          kind: Notebook
+          name: airplane-detection-wb
+        fieldPaths:
+          - spec.template.spec.containers.0.env.[name=NOTEBOOK_ARGS].value
+  - source:
+      kind: ConfigMap
+      name: environment-config
+      fieldPath: data.logoutUrl
+    targets:
+      - select:
+          group: kubeflow.org
+          version: v1
+          kind: Notebook
+          name: airplane-detection-wb
+        fieldPaths:
+          - spec.template.spec.containers.1.args.[=--logout-url=*]

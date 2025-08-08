@@ -1,0 +1,14 @@
+kind: Group
+apiVersion: user.openshift.io/v1
+metadata:
+  name: rhods-admins
+users:
+  - admin
+---
+kind: Group
+apiVersion: user.openshift.io/v1
+metadata:
+  name: rhods-users
+users:
+  - scientist1
+  - scientist2

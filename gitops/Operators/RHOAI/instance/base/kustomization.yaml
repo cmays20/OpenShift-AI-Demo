@@ -1,2 +1,3 @@
 resources:
   - dsc.yaml
+  - accelerator-profile.yaml

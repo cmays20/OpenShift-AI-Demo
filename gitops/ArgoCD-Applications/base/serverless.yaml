@@ -1,16 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argo-cd-permissions
+  name: serverless
   namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   destination:
     server: 'https://kubernetes.default.svc'
   project: default
   source:
-    path: gitops/ArgoCD-permissions/aggregate/all
-    repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
-    targetRevision: cluster3
+    path: gitops/Operators/Serverless/operator/base
+    repoURL: 'GITREPO'
+    targetRevision: REVISION
   syncPolicy:
     automated:
       selfHeal: true

@@ -2,3 +2,5 @@ resources:
   - htpass-secret.yaml
   - oauth.yaml
   - fake-secret.yaml
+  - users.yaml
+  - groups.yaml

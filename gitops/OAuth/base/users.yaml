@@ -1,0 +1,23 @@
+kind: User
+apiVersion: user.openshift.io/v1
+metadata:
+  name: admin
+identities:
+  - 'my_htpasswd_provider:admin'
+groups: null
+---
+kind: User
+apiVersion: user.openshift.io/v1
+metadata:
+  name: scientist1
+identities:
+  - 'my_htpasswd_provider:scientist1'
+groups: null
+---
+kind: User
+apiVersion: user.openshift.io/v1
+metadata:
+  name: scientist2
+identities:
+  - 'my_htpasswd_provider:scientist2'
+groups: null

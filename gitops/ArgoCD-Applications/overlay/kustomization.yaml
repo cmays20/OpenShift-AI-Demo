@@ -1,0 +1,29 @@
+resources:
+  - ../base
+
+configMapGenerator:
+  - name: git-config
+    literals:
+      - GIT_REPO_URL=https://github.com/cmays20/OpenShift-AI-Demo.git
+      - GIT_REVISION=cluster3
+
+replacements:
+  - source:
+      kind: ConfigMap
+      name: git-config
+      fieldPath: data.GIT_REPO_URL
+    targets:
+      - select:
+          kind: Application
+        fieldPaths:
+          - spec.source.repoURL
+  - source:
+      kind: ConfigMap
+      name: git-config
+      fieldPath: data.GIT_REVISION
+    targets:
+      - select:
+          kind: Application
+        fieldPaths:
+          - spec.source.targetRevision
+    
