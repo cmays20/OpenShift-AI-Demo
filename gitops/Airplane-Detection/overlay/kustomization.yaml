@@ -9,7 +9,7 @@ configMapGenerator:
     namespace: airplane-detection
     literals:
       - baseUrl=https://rhods-dashboard-redhat-ods-applications.apps.mays-demo.sandbox844.opentlc.com
-      - logoutUrl=https://rhods-dashboard-redhat-ods-applications.apps.mays-demo.sandbox844.opentlc.com/projects/airplane-detection?notebookLogout=airplane-detection-wb
+      - logoutUrl=--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.mays-demo.sandbox844.opentlc.com/projects/airplane-detection?notebookLogout=airplane-detection-wb
 
 replacements:
   - source:

@@ -53,31 +53,6 @@ kind: Job
 metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "-4"
-  name: argocd-update-resource-exclusions-job
-spec:
-  template:
-    spec:
-      containers:
-        - image: registry.redhat.io/openshift4/ose-cli
-          command:
-            - /bin/bash
-            - -c
-            - |
-              #!/usr/bin/env bash
-              oc patch ArgoCD openshift-gitops -n openshift-gitops --type=merge --patch='{"spec":{"resourceExclusions":"- apiGroups:\n  - \"\"\n  kinds:\n  - Secret\n  clusters:\n  - \"*\"\n  name:\n  - \"v4-0-config-user-idp-0-file-data\""}}'
-              exit $?
-          imagePullPolicy: Always
-          name: argocd-update-resource-exclusions-job
-      dnsPolicy: ClusterFirst
-      restartPolicy: Never
-      serviceAccountName: argocd-setup-sa
-      terminationGracePeriodSeconds: 30
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  annotations:
-    argocd.argoproj.io/sync-wave: "-4"
   name: argocd-update-sync-delay-job
 spec:
   template:

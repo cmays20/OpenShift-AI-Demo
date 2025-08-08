@@ -4,6 +4,7 @@ metadata:
   name: rhods-admins
 users:
   - admin
+  - b64:kube:admin
 ---
 kind: Group
 apiVersion: user.openshift.io/v1
