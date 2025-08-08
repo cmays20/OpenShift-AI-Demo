@@ -13,6 +13,7 @@ The URLs and other cluster specific values will need to be updated in the clone 
 Here is a list of file that will need to be updated:
 1. [Cert Manager](/gitops/Operators/CertManager/instance/overlay/kustomization.yaml)
 2. [GPU Instance](/gitops/GPU-instance/machine-sets/overlay-zone-a/patch-zone-a.yaml)
+3. [Git Repo Information](/gitops/ArgoCD-Applications/overlay/kustomization.yaml)
 
 ### Create the ArgoCD Applications
 First, apply the file argocd-setup.yaml.  Make sure it fully completes.

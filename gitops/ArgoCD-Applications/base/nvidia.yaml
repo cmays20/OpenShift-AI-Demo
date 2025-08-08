@@ -1,18 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: service-mesh
+  name: nvidia
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "6"
 spec:
   destination:
     server: 'https://kubernetes.default.svc'
   project: default
   source:
-    path: gitops/Operators/ServiceMesh/aggregate
-    repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
-    targetRevision: HEAD
+    path: gitops/Operators/NVIDIA/aggregate
+    repoURL: 'GITREPO'
+    targetRevision: REVISION
   syncPolicy:
     automated:
       selfHeal: true

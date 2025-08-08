@@ -1,18 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: nvidia
+  name: argo-cd-permissions
   namespace: openshift-gitops
-  annotations:
-    argocd.argoproj.io/sync-wave: "6"
 spec:
   destination:
     server: 'https://kubernetes.default.svc'
   project: default
   source:
-    path: gitops/Operators/NVIDIA/aggregate
-    repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
-    targetRevision: HEAD
+    path: gitops/ArgoCD-permissions/aggregate/all
+    repoURL: 'GITREPO'
+    targetRevision: REVISION
   syncPolicy:
     automated:
       selfHeal: true

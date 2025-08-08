@@ -1,18 +1,18 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: oauth
+  name: rhoai
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   destination:
     server: 'https://kubernetes.default.svc'
   project: default
   source:
-    path: gitops/OAuth/base
-    repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
-    targetRevision: HEAD
+    path: gitops/Operators/RHOAI/aggregate
+    repoURL: 'GITREPO'
+    targetRevision: REVISION
   syncPolicy:
     automated:
       selfHeal: true
