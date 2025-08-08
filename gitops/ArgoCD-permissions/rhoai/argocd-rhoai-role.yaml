@@ -4,5 +4,5 @@ metadata:
   name: argocd-rhoai-role
 rules:
   - apiGroups: ["datasciencecluster.opendatahub.io"]
-    resources: ["datascienceclusters"]
+    resources: ["datascienceclusters", "acceleratorprofiles"]
     verbs: ["*"]
