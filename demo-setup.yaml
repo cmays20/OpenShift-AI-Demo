@@ -10,7 +10,7 @@ spec:
   source:
     path: gitops/Demo-Setup
     repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
-    targetRevision: cluster4
+    targetRevision: cluster3
   syncPolicy:
     automated:
       selfHeal: true
