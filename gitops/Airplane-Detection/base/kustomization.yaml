@@ -2,3 +2,5 @@ resources:
   - namespace.yaml
   - airplane-detection-wb.yaml
   - pvc.yaml
+  - service-account.yaml
+  - secrets.yaml

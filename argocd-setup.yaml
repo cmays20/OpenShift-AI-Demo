@@ -10,7 +10,7 @@ spec:
   source:
     path: gitops/ArgoCD-Setup
     repoURL: 'https://github.com/cmays20/OpenShift-AI-Demo.git'
-    targetRevision: cluster3
+    targetRevision: cluster4
   syncPolicy:
     automated:
       selfHeal: true
