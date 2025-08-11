@@ -8,6 +8,19 @@ metadata:
     opendatahub.io/dashboard: 'true'
     opendatahub.io/odh-managed: 'true'
     opendatahub.io/user: scientist1
+  annotations:
+    notebooks.opendatahub.io/inject-oauth: 'true'
+    opendatahub.io/image-display-name: CUDA
+    opendatahub.io/accelerator-name: nvidia-gpu
+    openshift.io/description: ''
+    openshift.io/display-name: airplane-detection-wb
+    notebooks.opendatahub.io/last-image-version-git-commit-selection: 840a528
+    notebooks.opendatahub.io/last-image-selection: 'minimal-gpu:2025.1'
+    opendatahub.io/hardware-profile-namespace: ''
+    notebooks.opendatahub.io/last-size-selection: Medium
+    opendatahub.io/username: scientist1
+    opendatahub.io/hardware-profile-name: ''
+    opendatahub.io/workbench-image-namespace: ''
 spec:
   template:
     spec:
