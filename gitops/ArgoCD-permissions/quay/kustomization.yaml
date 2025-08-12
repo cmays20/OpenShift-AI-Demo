@@ -1,0 +1,3 @@
+resources:
+  - argocd-quay-role.yaml
+  - argocd-quay-rolebinding.yaml
