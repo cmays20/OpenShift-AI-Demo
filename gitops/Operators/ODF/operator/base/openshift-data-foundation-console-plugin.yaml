@@ -4,8 +4,37 @@ metadata:
   name: odf-console
 spec:
   displayName: ODF Plugin
-  service:
-    basePath: /
-    name: odf-console-service
-    namespace: openshift-storage
-    port: 9001
+  backend:
+    service:
+      basePath: /
+      name: odf-console-service
+      namespace: openshift-storage
+      port: 9001
+    type: Service
+  i18n:
+    loadType: ''
+  proxy:
+    - alias: provider-proxy
+      authorization: UserToken
+      endpoint:
+        service:
+          name: ux-backend-proxy
+          namespace: openshift-storage
+          port: 8888
+        type: Service
+    - alias: rosa-prometheus
+      authorization: None
+      endpoint:
+        service:
+          name: prometheus
+          namespace: openshift-storage
+          port: 9339
+        type: Service
+    - alias: s3
+      authorization: None
+      endpoint:
+        service:
+          name: s3
+          namespace: openshift-storage
+          port: 443
+        type: Service
