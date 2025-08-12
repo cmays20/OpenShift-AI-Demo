@@ -4,5 +4,5 @@ metadata:
   name: argocd-quay-role
 rules:
   - apiGroups: ["quay.redhat.com"]
-    resources: ["quay-enterprise"]
+    resources: ["quayregistries"]
     verbs: ["*"]
