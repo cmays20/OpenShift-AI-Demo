@@ -15,7 +15,7 @@ spec:
             - -c
             - |
               #!/usr/bin/env bash
-              curl -X POST -k http://quay-quay-quay-app.quay-enterprise.svc/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"quaypass12345", "email": "chmays@redhat.com", "access_token": true}'
+              curl -X POST -k http://quay-quay-app.quay-enterprise.svc/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"quaypass12345", "email": "chmays@redhat.com", "access_token": true}'
           imagePullPolicy: Always
           name: create-initial-user-job
       dnsPolicy: ClusterFirst
