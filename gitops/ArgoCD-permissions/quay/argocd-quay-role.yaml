@@ -6,3 +6,6 @@ rules:
   - apiGroups: ["quay.redhat.com"]
     resources: ["quayregistries"]
     verbs: ["*"]
+  - apiGroups: ["oauth.openshift.io"]
+    resources: ["oauthclients"]
+    verbs: ["*"]
