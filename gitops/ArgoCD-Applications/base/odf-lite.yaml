@@ -10,7 +10,7 @@ spec:
     server: 'https://kubernetes.default.svc'
   project: default
   source:
-    path: gitops/Operators/ODF/aggregate
+    path: gitops/Operators/ODF/aggregate/aws-multiCloudGateway
     repoURL: 'GITREPO'
     targetRevision: REVISION
   syncPolicy:
