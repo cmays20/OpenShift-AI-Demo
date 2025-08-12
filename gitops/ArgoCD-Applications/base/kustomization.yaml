@@ -9,3 +9,4 @@ resources:
   - nvidia.yaml
   - oauth.yaml
   - airplane-detection.yaml
+  - quay.yaml

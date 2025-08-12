@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: quay
+  namespace: openshift-gitops
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
+spec:
+  destination:
+    server: 'https://kubernetes.default.svc'
+  project: default
+  source:
+    path: gitops/Operators/Quay/aggregate
+    repoURL: 'GITREPO'
+    targetRevision: REVISION
+  syncPolicy:
+    automated:
+      selfHeal: true

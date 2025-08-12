@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  namespace: quay-enterprise
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
+  name: create-initial-user-job
+spec:
+  template:
+    spec:
+      containers:
+        - image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+          command:
+            - /bin/bash
+            - -c
+            - |
+              #!/usr/bin/env bash
+              curl -X POST -k http://example-registry-quay-app.quay-enterprise.svc/api/v1/user/initialize --header 'Content-Type: application/json' --data '{ "username": "quayadmin", "password":"quaypass12345", "email": "chmays@redhat.com", "access_token": true}'
+          imagePullPolicy: Always
+          name: create-initial-user-job
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 30
