@@ -1,0 +1,8 @@
+apiVersion: oauth.openshift.io/v1
+kind: OAuthClient
+metadata:
+  name: quay-client
+secret: s3cr3tQuayCl13ntT0k3n  # You define this securely
+redirectURIs:
+  - https://quay-quay-quay-enterprise.apps.mays-demo.sandbox508.opentlc.com/oauth2/redirect
+grantMethod: auto

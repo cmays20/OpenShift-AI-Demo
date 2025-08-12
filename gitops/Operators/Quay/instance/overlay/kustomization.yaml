@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - ../base/
   - config-bundle-secret.yaml
+  - quay-oauth-client.yaml
 
 patches:
   - target:
