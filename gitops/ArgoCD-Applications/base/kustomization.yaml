@@ -10,3 +10,4 @@ resources:
   - oauth.yaml
   - airplane-detection.yaml
   - quay.yaml
+  - odf-lite.yaml

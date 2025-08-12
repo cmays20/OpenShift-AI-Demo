@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: quay
+  name: odf-lite
   namespace: openshift-gitops
   annotations:
-    argocd.argoproj.io/sync-wave: "5"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   destination:
     server: 'https://kubernetes.default.svc'
   project: default
   source:
-    path: gitops/Operators/Quay/aggregate
+    path: gitops/Operators/ODF/aggregate
     repoURL: 'GITREPO'
     targetRevision: REVISION
   syncPolicy:
