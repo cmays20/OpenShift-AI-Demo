@@ -3,3 +3,4 @@ resources:
   - airplane-detection-wb.yaml
   - pvc.yaml
   - service-account.yaml
+  - connections.yaml

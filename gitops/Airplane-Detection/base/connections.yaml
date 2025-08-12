@@ -1,0 +1,33 @@
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: model-bucket
+  namespace: airplane-detection
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  bucketName: model-storage-bucket  # Fixed name instead of generateBucketName
+  storageClassName: openshift-storage.noobaa.io
+---
+apiVersion: opendatahub.io/v1alpha1
+kind: DataConnection
+metadata:
+  name: model-s3-connection
+  namespace: airplane-detection # Your DS project namespace
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    opendatahub.io/connection-type: s3
+spec:
+  displayName: "Model S3 Storage"
+  description: "S3 bucket for Model storage"
+  data:
+    - key: AWS_ACCESS_KEY_ID
+      value: ""  # Will be populated by the controller
+    - key: AWS_SECRET_ACCESS_KEY
+      value: ""  # Will be populated by the controller
+    - key: AWS_S3_ENDPOINT
+      value: ""  # Will be populated by the controller
+    - key: AWS_DEFAULT_REGION
+      value: ""  # Will be populated by the controller
+    - key: AWS_S3_BUCKET
+      value: "model-storage-bucket"  # Your fixed bucket name
