@@ -161,6 +161,59 @@ main {
     justify-content: center;
 }
 
+.confidence-controls {
+    margin-top: 20px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.confidence-controls h4 {
+    margin-bottom: 10px;
+    color: #333;
+    font-size: 1rem;
+}
+
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #555;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 8px;
+    transform: scale(1.2);
+}
+
+.checkmark {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    margin-left: 5px;
+    display: inline-block;
+}
+
+.checkmark.high {
+    background-color: #ff4444;
+}
+
+.checkmark.medium {
+    background-color: #ff8800;
+}
+
+.checkmark.low {
+    background-color: #ffaa00;
+}
+
 .debug-info {
     background: #f8f9fa;
     padding: 20px;

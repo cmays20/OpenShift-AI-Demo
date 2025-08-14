@@ -16,6 +16,7 @@ CORS(app)
 MODEL_SERVER_URL = os.getenv('MODEL_SERVER_URL', 'http://localhost:8000')
 MODEL_NAME = os.getenv('MODEL_NAME', 'airplane-detection-model')
 MODEL_VERSION = os.getenv('MODEL_VERSION', '1')
+DEBUG_MODE = os.getenv('DEBUG_MODE', 'false').lower() == 'true'
 
 # Tiled inference configuration - MUST match training parameters
 TILE_WIDTH = 512
@@ -335,7 +336,7 @@ def apply_nms(detections, nms_threshold=NMS_THRESHOLD, conf_threshold=CONF_THRES
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', debug_mode=DEBUG_MODE)
 
 @app.route('/predict', methods=['POST'])
 def predict():

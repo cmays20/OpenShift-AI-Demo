@@ -41,13 +41,14 @@
                         </span>
                     </button>
 
+                    {% if debug_mode %}
                     <div class="debug-buttons">
                         <button id="debugBtn" class="btn btn-debug" disabled>
                             <span class="btn-text">Debug Predict</span>
                             <span class="btn-loader" hidden>
                                 <svg class="spinner" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="4" opacity="0.25"></circle>
-                                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path>
+                                    <path fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path>
                                 </svg>
                                 Debugging...
                             </span>
@@ -58,12 +59,13 @@
                             <span class="btn-loader" hidden>
                                 <svg class="spinner" viewBox="0 0 24 24">
                                     <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="4" opacity="0.25"></circle>
-                                    <path fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path>
+                                    <path fill="currentColor" d="M4 12a8 8 0 818-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"></path>
                                 </svg>
                                 Analyzing...
                             </span>
                         </button>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -82,6 +84,27 @@
                         <div class="info-item">
                             <label>Processing Time:</label>
                             <span id="processingTime">-</span>
+                        </div>
+                    </div>
+
+                    <div class="confidence-controls">
+                        <h4>Show Confidence Levels:</h4>
+                        <div class="checkbox-group">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showHigh" checked>
+                                <span class="checkmark high"></span>
+                                High (≥70%)
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showMedium" checked>
+                                <span class="checkmark medium"></span>
+                                Medium (50-70%)
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="showLow" checked>
+                                <span class="checkmark low"></span>
+                                Low (25-50%)
+                            </label>
                         </div>
                     </div>
                 </div>

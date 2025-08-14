@@ -23,6 +23,15 @@ class AirplaneDetectionApp {
         this.detectionsContainer = document.getElementById('detectionsContainer');
         this.debugInfo = document.getElementById('debugInfo');
         this.debugContainer = document.getElementById('debugContainer');
+
+        // Confidence controls
+        this.showHigh = document.getElementById('showHigh');
+        this.showMedium = document.getElementById('showMedium');
+        this.showLow = document.getElementById('showLow');
+
+        // Store current detections for filtering
+        this.currentDetections = [];
+        this.currentImageSize = null;
     }
 
     setupEventListeners() {
@@ -68,11 +77,16 @@ class AirplaneDetectionApp {
             }
         });
 
-        this.rawBtn.addEventListener('click', () => {
+        this.rawBtn?.addEventListener('click', () => {
             if (this.currentImage) {
                 this.processImage('/debug-raw');
             }
         });
+
+        // Confidence control listeners
+        this.showHigh?.addEventListener('change', () => this.filterDetections());
+        this.showMedium?.addEventListener('change', () => this.filterDetections());
+        this.showLow?.addEventListener('change', () => this.filterDetections());
     }
 
     handleFileSelect(file) {
@@ -256,7 +270,7 @@ class AirplaneDetectionApp {
     }
 
     setLoading(loading, endpoint = '/predict') {
-        const buttons = [this.uploadBtn, this.debugBtn, this.rawBtn];
+        const buttons = [this.uploadBtn, this.debugBtn, this.rawBtn].filter(btn => btn !== null);
 
         buttons.forEach(btn => {
             const btnText = btn.querySelector('.btn-text');
@@ -269,32 +283,107 @@ class AirplaneDetectionApp {
             } else {
                 btnText.hidden = false;
                 btnLoader.hidden = true;
-                btn.disabled = false;
+                btn.disabled = !this.currentImage; // Only enable if image is selected
             }
         });
+    }
 
-        // Update loading text based on endpoint
-        if (loading) {
-            const debugLoader = this.debugBtn.querySelector('.btn-loader');
-            const rawLoader = this.rawBtn.querySelector('.btn-loader');
+    filterDetections() {
+        if (!this.currentDetections || this.currentDetections.length === 0) return;
 
-            if (endpoint === '/debug-predict') {
-                debugLoader.textContent = 'Debugging...';
-            } else if (endpoint === '/debug-raw') {
-                rawLoader.textContent = 'Analyzing...';
+        const showHigh = this.showHigh?.checked !== false;
+        const showMedium = this.showMedium?.checked !== false;
+        const showLow = this.showLow?.checked !== false;
+
+        // Clear and redraw canvas
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        const img = new Image();
+        img.onload = () => {
+            this.drawImage(img);
+            this.drawFilteredDetections(this.currentDetections, this.currentImageSize, showHigh, showMedium, showLow);
+        };
+        // Get the current image from canvas
+        const tempCanvas = document.createElement('canvas');
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCanvas.width = this.canvas.width;
+        tempCanvas.height = this.canvas.height;
+        tempCtx.drawImage(this.canvas, 0, 0);
+        img.src = tempCanvas.toDataURL();
+    }
+
+    drawFilteredDetections(detections, originalSize, showHigh, showMedium, showLow) {
+        const scaleX = this.canvas.width / originalSize[0];
+        const scaleY = this.canvas.height / originalSize[1];
+
+        detections.forEach((detection, index) => {
+            const [x1, y1, x2, y2] = detection.bbox;
+
+            // Check confidence level
+            let shouldShow = false;
+            if (detection.confidence >= 0.7 && showHigh) shouldShow = true;
+            else if (detection.confidence >= 0.5 && detection.confidence < 0.7 && showMedium) shouldShow = true;
+            else if (detection.confidence >= 0.25 && detection.confidence < 0.5 && showLow) shouldShow = true;
+
+            if (!shouldShow) return;
+
+            // Scale coordinates to canvas size
+            const canvasX1 = x1 * scaleX;
+            const canvasY1 = y1 * scaleY;
+            const canvasX2 = x2 * scaleX;
+            const canvasY2 = y2 * scaleY;
+
+            const width = canvasX2 - canvasX1;
+            const height = canvasY2 - canvasY1;
+
+            // Choose color based on confidence level
+            let strokeColor, fillColor, confLevel;
+            if (detection.confidence >= 0.7) {
+                strokeColor = '#ff4444';
+                fillColor = '#ff4444';
+                confLevel = 'HIGH';
+            } else if (detection.confidence >= 0.5) {
+                strokeColor = '#ff8800';
+                fillColor = '#ff8800';
+                confLevel = 'MED';
+            } else {
+                strokeColor = '#ffaa00';
+                fillColor = '#ffaa00';
+                confLevel = 'LOW';
             }
-        }
+
+            // Draw bounding box
+            this.ctx.strokeStyle = strokeColor;
+            this.ctx.lineWidth = 2;
+            this.ctx.strokeRect(canvasX1, canvasY1, width, height);
+
+            // Draw label
+            const label = `${detection.class}: ${(detection.confidence * 100).toFixed(1)}% (${confLevel})`;
+            this.ctx.font = '14px Arial';
+            const textWidth = this.ctx.measureText(label).width;
+            const textHeight = 18;
+
+            this.ctx.fillStyle = fillColor;
+            this.ctx.fillRect(canvasX1, canvasY1 - textHeight - 4, textWidth + 8, textHeight + 4);
+
+            this.ctx.fillStyle = 'white';
+            this.ctx.font = 'bold 14px Arial';
+            this.ctx.fillText(label, canvasX1 + 4, canvasY1 - 6);
+        });
     }
 
     displayResults(result) {
         const { image, detections, image_size, confidence_breakdown, tile_config } = result;
         const processingTimeMs = Date.now() - this.startTime;
 
+        // Store current detections for filtering
+        this.currentDetections = detections;
+        this.currentImageSize = image_size;
+
         // Handle debug mode
         if (result.debug_mode) {
             this.displayDebugInfo(result);
         } else {
-            this.debugInfo.hidden = true;
+            if (this.debugInfo) this.debugInfo.hidden = true;
         }
 
         // Load and display the image
@@ -476,13 +565,13 @@ class AirplaneDetectionApp {
         if (hasFile) {
             btnText.textContent = 'Detect Airplanes';
             this.uploadBtn.disabled = false;
-            this.debugBtn.disabled = false;
-            this.rawBtn.disabled = false;
+            if (this.debugBtn) this.debugBtn.disabled = false;
+            if (this.rawBtn) this.rawBtn.disabled = false;
         } else {
             btnText.textContent = 'Select Image First';
             this.uploadBtn.disabled = true;
-            this.debugBtn.disabled = true;
-            this.rawBtn.disabled = true;
+            if (this.debugBtn) this.debugBtn.disabled = true;
+            if (this.rawBtn) this.rawBtn.disabled = true;
         }
     }
 
