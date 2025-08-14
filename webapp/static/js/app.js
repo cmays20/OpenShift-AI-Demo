@@ -227,22 +227,26 @@ class AirplaneDetectionApp {
             const thresholdDiv = document.createElement('div');
             thresholdDiv.className = 'debug-item';
             thresholdDiv.innerHTML = `
-                <h4>Threshold Analysis</h4>
+                <h4>Threshold Analysis (Raw Values)</h4>
+                <div class="debug-stat">
+                    <span class="debug-label">Above 0.001:</span>
+                    <span class="debug-value">${stats.threshold_analysis.above_0_001} / ${stats.threshold_analysis.total_predictions}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Above 0.005:</span>
+                    <span class="debug-value">${stats.threshold_analysis.above_0_005} / ${stats.threshold_analysis.total_predictions}</span>
+                </div>
                 <div class="debug-stat">
                     <span class="debug-label">Above 0.01:</span>
                     <span class="debug-value">${stats.threshold_analysis.above_0_01} / ${stats.threshold_analysis.total_predictions}</span>
                 </div>
                 <div class="debug-stat">
-                    <span class="debug-label">Above 0.15:</span>
-                    <span class="debug-value">${stats.threshold_analysis.above_0_15} / ${stats.threshold_analysis.total_predictions}</span>
+                    <span class="debug-label">Above 0.02:</span>
+                    <span class="debug-value">${stats.threshold_analysis.above_0_02} / ${stats.threshold_analysis.total_predictions}</span>
                 </div>
                 <div class="debug-stat">
-                    <span class="debug-label">Above 0.25:</span>
-                    <span class="debug-value">${stats.threshold_analysis.above_0_25} / ${stats.threshold_analysis.total_predictions}</span>
-                </div>
-                <div class="debug-stat">
-                    <span class="debug-label">Above 0.50:</span>
-                    <span class="debug-value">${stats.threshold_analysis.above_0_50} / ${stats.threshold_analysis.total_predictions}</span>
+                    <span class="debug-label">Above 0.05:</span>
+                    <span class="debug-value">${stats.threshold_analysis.above_0_05} / ${stats.threshold_analysis.total_predictions}</span>
                 </div>
             `;
             this.debugContainer.appendChild(thresholdDiv);

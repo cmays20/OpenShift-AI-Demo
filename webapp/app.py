@@ -21,8 +21,8 @@ MODEL_VERSION = os.getenv('MODEL_VERSION', '1')
 TILE_WIDTH = 512
 TILE_HEIGHT = 512
 TILE_OVERLAP = 128
-CONF_THRESHOLD = 0.15  # Original threshold
-DEBUG_CONF_THRESHOLD = 0.01  # Very low threshold for debugging
+CONF_THRESHOLD = 0.01  # Adjusted for raw confidence range (0-0.055)
+DEBUG_CONF_THRESHOLD = 0.001  # Very low threshold for debugging
 NMS_THRESHOLD = 0.8
 
 # Class names for airplane detection
@@ -494,9 +494,8 @@ def debug_raw():
                 predictions = np.array(outputs[0].get('data', []))
                 predictions = predictions.reshape(1, 5, 5376)[0].T  # [5376, 5]
 
-                # Analyze raw predictions
+                # Analyze raw predictions (use directly, no sigmoid needed)
                 raw_conf = predictions[:, 4]
-                sigmoid_conf = 1.0 / (1.0 + np.exp(-np.clip(raw_conf, -10, 10)))
 
                 # Statistics
                 stats = {
@@ -506,19 +505,13 @@ def debug_raw():
                         'mean': float(np.mean(raw_conf)),
                         'std': float(np.std(raw_conf))
                     },
-                    'sigmoid_confidence': {
-                        'min': float(np.min(sigmoid_conf)),
-                        'max': float(np.max(sigmoid_conf)),
-                        'mean': float(np.mean(sigmoid_conf)),
-                        'std': float(np.std(sigmoid_conf))
-                    },
                     'threshold_analysis': {
-                        'above_0_01': int(np.sum(sigmoid_conf > 0.01)),
-                        'above_0_05': int(np.sum(sigmoid_conf > 0.05)),
-                        'above_0_15': int(np.sum(sigmoid_conf > 0.15)),
-                        'above_0_25': int(np.sum(sigmoid_conf > 0.25)),
-                        'above_0_50': int(np.sum(sigmoid_conf > 0.50)),
-                        'total_predictions': len(sigmoid_conf)
+                        'above_0_001': int(np.sum(raw_conf > 0.001)),
+                        'above_0_005': int(np.sum(raw_conf > 0.005)),
+                        'above_0_01': int(np.sum(raw_conf > 0.01)),
+                        'above_0_02': int(np.sum(raw_conf > 0.02)),
+                        'above_0_05': int(np.sum(raw_conf > 0.05)),
+                        'total_predictions': len(raw_conf)
                     },
                     'coordinate_ranges': {
                         'x': [float(np.min(predictions[:, 0])), float(np.max(predictions[:, 0]))],
