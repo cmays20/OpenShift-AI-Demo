@@ -180,6 +180,7 @@ class AirplaneDetectionApp {
             console.error('Processing error:', error);
             this.showError(error.message || 'Failed to process image');
         } finally {
+            console.log('Finally block executed, calling setLoading(false)');
             this.setLoading(false);
         }
     }
@@ -269,20 +270,37 @@ class AirplaneDetectionApp {
     setLoading(loading, endpoint = '/predict') {
         const buttons = [this.uploadBtn, this.debugBtn, this.rawBtn].filter(btn => btn !== null);
 
+        console.log('setLoading called:', { loading, endpoint, buttonsFound: buttons.length });
+
         buttons.forEach(btn => {
             const btnText = btn.querySelector('.btn-text');
             const btnLoader = btn.querySelector('.btn-loader');
+
+            if (!btnText || !btnLoader) {
+                console.warn('Button elements not found for:', btn.id);
+                return;
+            }
 
             if (loading) {
                 btnText.hidden = true;
                 btnLoader.hidden = false;
                 btn.disabled = true;
+                console.log('Set button to loading state:', btn.id);
             } else {
                 btnText.hidden = false;
                 btnLoader.hidden = true;
                 btn.disabled = !this.currentImage; // Only enable if image is selected
+                console.log('Reset button from loading state:', btn.id, 'disabled:', btn.disabled);
             }
         });
+
+        // Special handling for main upload button text
+        if (!loading && this.uploadBtn) {
+            const mainBtnText = this.uploadBtn.querySelector('.btn-text');
+            if (mainBtnText && this.currentImage) {
+                mainBtnText.textContent = 'Detect Airplanes';
+            }
+        }
     }
 
     filterDetections() {
