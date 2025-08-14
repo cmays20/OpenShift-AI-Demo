@@ -382,10 +382,7 @@ def predict():
 
 @app.route('/debug-predict', methods=['POST'])
 def debug_predict():
-    """Debug prediction with very low confidence threshold and detailed logging"""
-    global CONF_THRESHOLD
-    original_threshold = CONF_THRESHOLD
-
+    """Debug prediction with detailed logging and confidence analysis"""
     try:
         if 'image' not in request.files:
             return jsonify({'error': 'No image uploaded'}), 400
@@ -404,17 +401,12 @@ def debug_predict():
         print(f"\n=== DEBUG PREDICTION MODE ===")
         print(f"Processing image: {original_size}")
 
-        # Temporarily lower threshold for debugging
-        CONF_THRESHOLD = DEBUG_CONF_THRESHOLD
-        print(f"Using debug confidence threshold: {CONF_THRESHOLD}")
-
-        # Use sliding window inference with debug output
+        # Use sliding window inference with debug output (but normal threshold)
         detections = sliding_window_inference(
             image, MODEL_SERVER_URL, MODEL_NAME, MODEL_VERSION
         )
 
-        # Restore original threshold
-        CONF_THRESHOLD = original_threshold
+        print(f"Final detections after normal threshold ({CONF_THRESHOLD}): {len(detections)}")
 
         # Convert image to base64 for frontend display
         img_buffer = io.BytesIO()
@@ -422,22 +414,133 @@ def debug_predict():
         img_buffer.seek(0)
         img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
 
+        # Analyze confidence distribution
+        if detections:
+            confidences = [det['confidence'] for det in detections]
+            conf_stats = {
+                'min': float(min(confidences)),
+                'max': float(max(confidences)),
+                'mean': float(sum(confidences) / len(confidences)),
+                'count_high': sum(1 for c in confidences if c >= 0.7),
+                'count_med': sum(1 for c in confidences if 0.5 <= c < 0.7),
+                'count_low': sum(1 for c in confidences if 0.25 <= c < 0.5),
+            }
+        else:
+            conf_stats = {'message': 'No detections found'}
+
         return jsonify({
             'success': True,
             'debug_mode': True,
             'image': f'data:image/jpeg;base64,{img_base64}',
             'detections': detections,
             'image_size': original_size,
-            'debug_threshold': DEBUG_CONF_THRESHOLD,
-            'original_threshold': original_threshold,
-            'raw_detection_count': len(detections)
+            'confidence_threshold': CONF_THRESHOLD,
+            'detection_count': len(detections),
+            'confidence_stats': conf_stats
         })
 
     except Exception as e:
-        # Restore original threshold on error
-        CONF_THRESHOLD = original_threshold
         print(f"Debug prediction error: {str(e)}")
         return jsonify({'error': f'Debug prediction failed: {str(e)}'}), 500
+
+@app.route('/debug-raw', methods=['POST'])
+def debug_raw():
+    """Show raw model output statistics without applying thresholds"""
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image uploaded'}), 400
+
+        file = request.files['image']
+        image = Image.open(file.stream)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
+        # Process just one tile from center of image
+        img_width, img_height = image.size
+        center_x, center_y = img_width // 2, img_height // 2
+        x1 = max(0, center_x - TILE_WIDTH // 2)
+        y1 = max(0, center_y - TILE_HEIGHT // 2)
+        x2 = min(img_width, x1 + TILE_WIDTH)
+        y2 = min(img_height, y1 + TILE_HEIGHT)
+
+        # Extract and process tile
+        tile = np.array(image)[y1:y2, x1:x2]
+        if tile.shape[0] != TILE_HEIGHT or tile.shape[1] != TILE_WIDTH:
+            padded_tile = np.zeros((TILE_HEIGHT, TILE_WIDTH, 3), dtype=np.uint8)
+            padded_tile[:tile.shape[0], :tile.shape[1]] = tile
+            tile = padded_tile
+
+        tile_pil = Image.fromarray(tile)
+        processed_tile = preprocess_tile(tile_pil)
+
+        # Make request to model server
+        model_url = f"{MODEL_SERVER_URL}/v2/models/{MODEL_NAME}/versions/{MODEL_VERSION}/infer"
+        input_data = {
+            "inputs": [{
+                "name": "images",
+                "shape": list(processed_tile.shape),
+                "datatype": "FP32",
+                "data": processed_tile.flatten().tolist()
+            }]
+        }
+
+        response = requests.post(model_url, json=input_data, headers={'Content-Type': 'application/json'}, timeout=30)
+
+        if response.status_code == 200:
+            model_output = response.json()
+            outputs = model_output.get('outputs', [])
+
+            if outputs:
+                predictions = np.array(outputs[0].get('data', []))
+                predictions = predictions.reshape(1, 5, 5376)[0].T  # [5376, 5]
+
+                # Analyze raw predictions
+                raw_conf = predictions[:, 4]
+                sigmoid_conf = 1.0 / (1.0 + np.exp(-np.clip(raw_conf, -10, 10)))
+
+                # Statistics
+                stats = {
+                    'raw_confidence': {
+                        'min': float(np.min(raw_conf)),
+                        'max': float(np.max(raw_conf)),
+                        'mean': float(np.mean(raw_conf)),
+                        'std': float(np.std(raw_conf))
+                    },
+                    'sigmoid_confidence': {
+                        'min': float(np.min(sigmoid_conf)),
+                        'max': float(np.max(sigmoid_conf)),
+                        'mean': float(np.mean(sigmoid_conf)),
+                        'std': float(np.std(sigmoid_conf))
+                    },
+                    'threshold_analysis': {
+                        'above_0_01': int(np.sum(sigmoid_conf > 0.01)),
+                        'above_0_05': int(np.sum(sigmoid_conf > 0.05)),
+                        'above_0_15': int(np.sum(sigmoid_conf > 0.15)),
+                        'above_0_25': int(np.sum(sigmoid_conf > 0.25)),
+                        'above_0_50': int(np.sum(sigmoid_conf > 0.50)),
+                        'total_predictions': len(sigmoid_conf)
+                    },
+                    'coordinate_ranges': {
+                        'x': [float(np.min(predictions[:, 0])), float(np.max(predictions[:, 0]))],
+                        'y': [float(np.min(predictions[:, 1])), float(np.max(predictions[:, 1]))],
+                        'w': [float(np.min(predictions[:, 2])), float(np.max(predictions[:, 2]))],
+                        'h': [float(np.min(predictions[:, 3])), float(np.max(predictions[:, 3]))]
+                    }
+                }
+
+                return jsonify({
+                    'success': True,
+                    'tile_location': [x1, y1, x2, y2],
+                    'image_size': [img_width, img_height],
+                    'statistics': stats
+                })
+            else:
+                return jsonify({'error': 'No outputs from model'}), 500
+        else:
+            return jsonify({'error': f'Model server error: {response.status_code}'}), 500
+
+    except Exception as e:
+        return jsonify({'error': f'Debug raw failed: {str(e)}'}), 500
 
         # Convert image to base64 for frontend display
         img_buffer = io.BytesIO()

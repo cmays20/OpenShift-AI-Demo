@@ -12,6 +12,8 @@ class AirplaneDetectionApp {
         this.uploadArea = document.getElementById('uploadArea');
         this.imageInput = document.getElementById('imageInput');
         this.uploadBtn = document.getElementById('uploadBtn');
+        this.debugBtn = document.getElementById('debugBtn');
+        this.rawBtn = document.getElementById('rawBtn');
         this.resultsSection = document.getElementById('resultsSection');
         this.resultCanvas = document.getElementById('resultCanvas');
         this.errorMessage = document.getElementById('errorMessage');
@@ -19,6 +21,8 @@ class AirplaneDetectionApp {
         this.detectionCount = document.getElementById('detectionCount');
         this.processingTime = document.getElementById('processingTime');
         this.detectionsContainer = document.getElementById('detectionsContainer');
+        this.debugInfo = document.getElementById('debugInfo');
+        this.debugContainer = document.getElementById('debugContainer');
     }
 
     setupEventListeners() {
@@ -54,6 +58,19 @@ class AirplaneDetectionApp {
         this.uploadBtn.addEventListener('click', () => {
             if (this.currentImage) {
                 this.processImage();
+            }
+        });
+
+        // Debug buttons
+        this.debugBtn.addEventListener('click', () => {
+            if (this.currentImage) {
+                this.processImage('/debug-predict');
+            }
+        });
+
+        this.rawBtn.addEventListener('click', () => {
+            if (this.currentImage) {
+                this.processImage('/debug-raw');
             }
         });
     }
@@ -121,18 +138,18 @@ class AirplaneDetectionApp {
         this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
     }
 
-    async processImage() {
+    async processImage(endpoint = '/predict') {
         if (!this.currentImage) return;
 
         this.startTime = Date.now();
-        this.setLoading(true);
+        this.setLoading(true, endpoint);
         this.hideError();
 
         const formData = new FormData();
         formData.append('image', this.currentImage);
 
         try {
-            const response = await fetch('/predict', {
+            const response = await fetch(endpoint, {
                 method: 'POST',
                 body: formData
             });
@@ -140,21 +157,157 @@ class AirplaneDetectionApp {
             const result = await response.json();
 
             if (!response.ok) {
-                throw new Error(result.error || 'Prediction failed');
+                throw new Error(result.error || 'Processing failed');
             }
 
-            this.displayResults(result);
+            if (endpoint === '/debug-raw') {
+                this.displayRawResults(result);
+            } else {
+                this.displayResults(result);
+            }
         } catch (error) {
-            console.error('Prediction error:', error);
+            console.error('Processing error:', error);
             this.showError(error.message || 'Failed to process image');
         } finally {
             this.setLoading(false);
         }
     }
 
+    displayRawResults(result) {
+        const processingTimeMs = Date.now() - this.startTime;
+
+        // Show debug info section
+        this.debugInfo.hidden = false;
+        this.debugContainer.innerHTML = '';
+
+        if (result.statistics) {
+            const stats = result.statistics;
+
+            // Raw confidence stats
+            const rawConfDiv = document.createElement('div');
+            rawConfDiv.className = 'debug-item';
+            rawConfDiv.innerHTML = `
+                <h4>Raw Confidence Statistics</h4>
+                <div class="debug-stat">
+                    <span class="debug-label">Min:</span>
+                    <span class="debug-value">${stats.raw_confidence.min.toFixed(6)}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Max:</span>
+                    <span class="debug-value">${stats.raw_confidence.max.toFixed(6)}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Mean:</span>
+                    <span class="debug-value">${stats.raw_confidence.mean.toFixed(6)}</span>
+                </div>
+            `;
+            this.debugContainer.appendChild(rawConfDiv);
+
+            // Sigmoid confidence stats
+            const sigmoidConfDiv = document.createElement('div');
+            sigmoidConfDiv.className = 'debug-item';
+            sigmoidConfDiv.innerHTML = `
+                <h4>Sigmoid Confidence Statistics</h4>
+                <div class="debug-stat">
+                    <span class="debug-label">Min:</span>
+                    <span class="debug-value">${stats.sigmoid_confidence.min.toFixed(6)}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Max:</span>
+                    <span class="debug-value">${stats.sigmoid_confidence.max.toFixed(6)}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Mean:</span>
+                    <span class="debug-value">${stats.sigmoid_confidence.mean.toFixed(6)}</span>
+                </div>
+            `;
+            this.debugContainer.appendChild(sigmoidConfDiv);
+
+            // Threshold analysis
+            const thresholdDiv = document.createElement('div');
+            thresholdDiv.className = 'debug-item';
+            thresholdDiv.innerHTML = `
+                <h4>Threshold Analysis</h4>
+                <div class="debug-stat">
+                    <span class="debug-label">Above 0.01:</span>
+                    <span class="debug-value">${stats.threshold_analysis.above_0_01} / ${stats.threshold_analysis.total_predictions}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Above 0.15:</span>
+                    <span class="debug-value">${stats.threshold_analysis.above_0_15} / ${stats.threshold_analysis.total_predictions}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Above 0.25:</span>
+                    <span class="debug-value">${stats.threshold_analysis.above_0_25} / ${stats.threshold_analysis.total_predictions}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Above 0.50:</span>
+                    <span class="debug-value">${stats.threshold_analysis.above_0_50} / ${stats.threshold_analysis.total_predictions}</span>
+                </div>
+            `;
+            this.debugContainer.appendChild(thresholdDiv);
+        }
+
+        // Processing time
+        const processingDiv = document.createElement('div');
+        processingDiv.className = 'debug-item';
+        processingDiv.innerHTML = `
+            <h4>Processing Info</h4>
+            <div class="debug-stat">
+                <span class="debug-label">Processing Time:</span>
+                <span class="debug-value">${processingTimeMs}ms</span>
+            </div>
+            <div class="debug-stat">
+                <span class="debug-label">Tile Location:</span>
+                <span class="debug-value">[${result.tile_location.join(', ')}]</span>
+            </div>
+        `;
+        this.debugContainer.appendChild(processingDiv);
+
+        this.debugInfo.classList.add('fade-in');
+    }
+
+    setLoading(loading, endpoint = '/predict') {
+        const buttons = [this.uploadBtn, this.debugBtn, this.rawBtn];
+
+        buttons.forEach(btn => {
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoader = btn.querySelector('.btn-loader');
+
+            if (loading) {
+                btnText.hidden = true;
+                btnLoader.hidden = false;
+                btn.disabled = true;
+            } else {
+                btnText.hidden = false;
+                btnLoader.hidden = true;
+                btn.disabled = false;
+            }
+        });
+
+        // Update loading text based on endpoint
+        if (loading) {
+            const debugLoader = this.debugBtn.querySelector('.btn-loader');
+            const rawLoader = this.rawBtn.querySelector('.btn-loader');
+
+            if (endpoint === '/debug-predict') {
+                debugLoader.textContent = 'Debugging...';
+            } else if (endpoint === '/debug-raw') {
+                rawLoader.textContent = 'Analyzing...';
+            }
+        }
+    }
+
     displayResults(result) {
         const { image, detections, image_size, confidence_breakdown, tile_config } = result;
         const processingTimeMs = Date.now() - this.startTime;
+
+        // Handle debug mode
+        if (result.debug_mode) {
+            this.displayDebugInfo(result);
+        } else {
+            this.debugInfo.hidden = true;
+        }
 
         // Load and display the image
         const img = new Image();
@@ -167,6 +320,44 @@ class AirplaneDetectionApp {
             this.showResults();
         };
         img.src = image;
+    }
+
+    displayDebugInfo(result) {
+        this.debugInfo.hidden = false;
+        this.debugContainer.innerHTML = '';
+
+        if (result.confidence_stats) {
+            const statsDiv = document.createElement('div');
+            statsDiv.className = 'debug-item';
+            statsDiv.innerHTML = `
+                <h4>Debug Statistics</h4>
+                <div class="debug-stat">
+                    <span class="debug-label">Detection Count:</span>
+                    <span class="debug-value">${result.detection_count}</span>
+                </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Confidence Threshold:</span>
+                    <span class="debug-value">${result.confidence_threshold}</span>
+                </div>
+            `;
+
+            if (result.confidence_stats.min !== undefined) {
+                statsDiv.innerHTML += `
+                    <div class="debug-stat">
+                        <span class="debug-label">Confidence Range:</span>
+                        <span class="debug-value">${result.confidence_stats.min.toFixed(3)} - ${result.confidence_stats.max.toFixed(3)}</span>
+                    </div>
+                    <div class="debug-stat">
+                        <span class="debug-label">Average Confidence:</span>
+                        <span class="debug-value">${result.confidence_stats.mean.toFixed(3)}</span>
+                    </div>
+                `;
+            }
+
+            this.debugContainer.appendChild(statsDiv);
+        }
+
+        this.debugInfo.classList.add('fade-in');
     }
 
     drawDetections(detections, originalSize) {
@@ -297,9 +488,13 @@ class AirplaneDetectionApp {
         if (hasFile) {
             btnText.textContent = 'Detect Airplanes';
             this.uploadBtn.disabled = false;
+            this.debugBtn.disabled = false;
+            this.rawBtn.disabled = false;
         } else {
             btnText.textContent = 'Select Image First';
             this.uploadBtn.disabled = true;
+            this.debugBtn.disabled = true;
+            this.rawBtn.disabled = true;
         }
     }
 
