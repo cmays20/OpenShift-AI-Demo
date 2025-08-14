@@ -289,26 +289,39 @@ class AirplaneDetectionApp {
     }
 
     filterDetections() {
-        if (!this.currentDetections || this.currentDetections.length === 0) return;
+        if (!this.currentDetections || this.currentDetections.length === 0 || !this.currentImage_loaded) return;
 
         const showHigh = this.showHigh?.checked !== false;
         const showMedium = this.showMedium?.checked !== false;
         const showLow = this.showLow?.checked !== false;
 
-        // Clear and redraw canvas
+        // Clear canvas and redraw from original image
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-        const img = new Image();
-        img.onload = () => {
-            this.drawImage(img);
-            this.drawFilteredDetections(this.currentDetections, this.currentImageSize, showHigh, showMedium, showLow);
-        };
-        // Get the current image from canvas
-        const tempCanvas = document.createElement('canvas');
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCanvas.width = this.canvas.width;
-        tempCanvas.height = this.canvas.height;
-        tempCtx.drawImage(this.canvas, 0, 0);
-        img.src = tempCanvas.toDataURL();
+        this.drawImage(this.currentImage_loaded);
+
+        // Draw only the filtered detections
+        this.drawFilteredDetections(this.currentDetections, this.currentImageSize, showHigh, showMedium, showLow);
+
+        // Update the detection count display
+        const visibleCount = this.countVisibleDetections(this.currentDetections, showHigh, showMedium, showLow);
+        this.updateDetectionCount(visibleCount, this.currentDetections.length);
+    }
+
+    countVisibleDetections(detections, showHigh, showMedium, showLow) {
+        return detections.filter(detection => {
+            if (detection.confidence >= 0.7 && showHigh) return true;
+            if (detection.confidence >= 0.5 && detection.confidence < 0.7 && showMedium) return true;
+            if (detection.confidence >= 0.25 && detection.confidence < 0.5 && showLow) return true;
+            return false;
+        }).length;
+    }
+
+    updateDetectionCount(visibleCount, totalCount) {
+        if (visibleCount === totalCount) {
+            this.detectionCount.textContent = `${totalCount} total (H:${this.currentDetections.filter(d => d.confidence >= 0.7).length}, M:${this.currentDetections.filter(d => d.confidence >= 0.5 && d.confidence < 0.7).length}, L:${this.currentDetections.filter(d => d.confidence >= 0.25 && d.confidence < 0.5).length})`;
+        } else {
+            this.detectionCount.textContent = `${visibleCount} visible / ${totalCount} total`;
+        }
     }
 
     drawFilteredDetections(detections, originalSize, showHigh, showMedium, showLow) {
@@ -318,7 +331,7 @@ class AirplaneDetectionApp {
         detections.forEach((detection, index) => {
             const [x1, y1, x2, y2] = detection.bbox;
 
-            // Check confidence level
+            // Check confidence level and whether to show this detection
             let shouldShow = false;
             if (detection.confidence >= 0.7 && showHigh) shouldShow = true;
             else if (detection.confidence >= 0.5 && detection.confidence < 0.7 && showMedium) shouldShow = true;
@@ -362,7 +375,7 @@ class AirplaneDetectionApp {
         const { image, detections, image_size, confidence_breakdown, tile_config } = result;
         const processingTimeMs = Date.now() - this.startTime;
 
-        // Store current detections for filtering
+        // Store current detections and image for filtering
         this.currentDetections = detections;
         this.currentImageSize = image_size;
 
@@ -376,6 +389,9 @@ class AirplaneDetectionApp {
         // Load and display the image
         const img = new Image();
         img.onload = () => {
+            // Store the original image for filtering
+            this.currentImage_loaded = img;
+
             this.setupCanvas(img);
             this.drawImage(img);
             this.drawDetections(detections, image_size);
