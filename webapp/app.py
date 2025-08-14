@@ -14,7 +14,7 @@ CORS(app)
 
 # Configuration - can be overridden by environment variables
 MODEL_SERVER_URL = os.getenv('MODEL_SERVER_URL', 'http://localhost:8000')
-MODEL_NAME = os.getenv('MODEL_NAME', 'airplane-detection')
+MODEL_NAME = os.getenv('MODEL_NAME', 'airplane-detection-model')
 MODEL_VERSION = os.getenv('MODEL_VERSION', '1')
 
 # Tiled inference configuration - MUST match training parameters
@@ -130,79 +130,105 @@ def process_tile_predictions(model_output, x_start, y_start, tile_x, tile_y, x_t
     if not outputs:
         return detections
 
-    # Get the main output (usually the first one for YOLO models)
+    # Get the main output (should be "output0" with shape [1, 5, 5376])
     predictions = outputs[0].get('data', [])
     if not predictions:
         return detections
 
-    # Convert to numpy array and reshape if needed
+    # Convert to numpy array and reshape to expected format
     predictions = np.array(predictions)
 
-    # YOLO output format is typically [batch, detections, attributes]
-    # where attributes = [x_center, y_center, width, height, confidence, class_scores...]
-    if predictions.ndim == 1:
-        # Reshape based on expected YOLO output format
-        # For YOLOv8/11: typically 8400 detections with 85 attributes (80 classes + 5)
-        if len(predictions) > 0:
-            # Common reshaping for YOLO models
-            num_attrs = 6  # x, y, w, h, conf, class for single class model
-            if len(predictions) % num_attrs == 0:
-                predictions = predictions.reshape(-1, num_attrs)
-            else:
-                # Try common YOLO formats
-                possible_shapes = [(8400, -1), (25200, -1), (6300, -1)]
-                for shape in possible_shapes:
-                    try:
-                        predictions = predictions.reshape(shape)
-                        break
-                    except:
-                        continue
+    # Debug info for first tile
+    if tile_x == 0 and tile_y == 0:
+        print(f"Raw predictions shape: {predictions.shape}")
+        print(f"Raw predictions length: {len(predictions)}")
+        print(f"Expected shape: [1, 5, 5376] = {1 * 5 * 5376} elements")
+
+    # Reshape to [1, 5, 5376] format
+    try:
+        predictions = predictions.reshape(1, 5, 5376)
+        if tile_x == 0 and tile_y == 0:
+            print(f"Reshaped predictions to: {predictions.shape}")
+    except ValueError as e:
+        print(f"Error reshaping predictions: {e}")
+        return detections
+
+    # Remove batch dimension and transpose to get [5376, 5] format
+    # Original: [1, 5, 5376] -> [5, 5376] -> [5376, 5]
+    predictions = predictions[0]  # Remove batch dim: [5, 5376]
+    predictions = predictions.T   # Transpose: [5376, 5]
+
+    if tile_x == 0 and tile_y == 0:
+        print(f"Final predictions shape: {predictions.shape}")
+        print(f"Sample detection: {predictions[0]}")
+        print(f"Sample confidence values: {predictions[:5, 4]}")  # First 5 confidence values
 
     # Process each detection
-    if predictions.ndim == 2:
-        for detection in predictions:
-            if len(detection) >= 5:
-                # Extract detection data
-                x_center, y_center, width, height, confidence = detection[:5]
+    for i, detection in enumerate(predictions):
+        # YOLO format: [x_center, y_center, width, height, confidence]
+        x_center, y_center, width, height, confidence = detection
 
-                if confidence > CONF_THRESHOLD:
-                    # Convert from normalized coordinates to pixel coordinates
-                    x_center_px = x_center * TILE_WIDTH
-                    y_center_px = y_center * TILE_HEIGHT
-                    width_px = width * TILE_WIDTH
-                    height_px = height * TILE_HEIGHT
+        # Apply sigmoid to confidence if it appears to be raw logits
+        if confidence > 1.0:
+            confidence = 1.0 / (1.0 + np.exp(-confidence))  # Sigmoid activation
 
-                    # Convert to corner coordinates
-                    x1 = x_center_px - width_px / 2
-                    y1 = y_center_px - height_px / 2
-                    x2 = x_center_px + width_px / 2
-                    y2 = y_center_px + height_px / 2
+        # Skip low confidence detections
+        if confidence < CONF_THRESHOLD:
+            continue
 
-                    # Apply tile filtering similar to notebook
-                    margin = 10
-                    is_center_tile = (tile_x > 0 and tile_x < x_tiles-1 and 
-                                    tile_y > 0 and tile_y < y_tiles-1)
+        if tile_x == 0 and tile_y == 0 and len(detections) < 3:
+            print(f"Processing detection {i}: conf={confidence:.3f}, coords=({x_center:.3f}, {y_center:.3f}, {width:.3f}, {height:.3f})")
 
-                    if is_center_tile:
-                        # Center tiles - no margin needed
-                        should_include = True
-                    else:
-                        # Edge tiles - apply margin filter
-                        should_include = (x1 > margin and y1 > margin and 
-                                        x2 < TILE_WIDTH - margin and y2 < TILE_HEIGHT - margin)
+        # Convert from normalized coordinates (0-1) to pixel coordinates
+        x_center_px = x_center * TILE_WIDTH
+        y_center_px = y_center * TILE_HEIGHT
+        width_px = width * TILE_WIDTH
+        height_px = height * TILE_HEIGHT
 
-                    if should_include:
-                        # Convert to global image coordinates
-                        global_x1 = x1 + x_start
-                        global_y1 = y1 + y_start
-                        global_x2 = x2 + x_start
-                        global_y2 = y2 + y_start
+        # Convert to corner coordinates
+        x1 = x_center_px - width_px / 2
+        y1 = y_center_px - height_px / 2
+        x2 = x_center_px + width_px / 2
+        y2 = y_center_px + height_px / 2
 
-                        # Get class (default to 0 for aircraft)
-                        class_id = int(detection[5]) if len(detection) > 5 else 0
+        # Ensure coordinates are within tile bounds
+        x1 = max(0, min(x1, TILE_WIDTH))
+        y1 = max(0, min(y1, TILE_HEIGHT))
+        x2 = max(0, min(x2, TILE_WIDTH))
+        y2 = max(0, min(y2, TILE_HEIGHT))
 
-                        detections.append([global_x1, global_y1, global_x2, global_y2, 
-                                         float(confidence), class_id])
+        # Skip invalid boxes
+        if x2 <= x1 or y2 <= y1:
+            continue
+
+        # Apply tile filtering similar to notebook
+        margin = 10
+        is_center_tile = (tile_x > 0 and tile_x < x_tiles-1 and 
+                        tile_y > 0 and tile_y < y_tiles-1)
+
+        if is_center_tile:
+            # Center tiles - no margin needed
+            should_include = True
+        else:
+            # Edge tiles - apply margin filter
+            should_include = (x1 > margin and y1 > margin and 
+                            x2 < TILE_WIDTH - margin and y2 < TILE_HEIGHT - margin)
+
+        if should_include:
+            # Convert to global image coordinates
+            global_x1 = x1 + x_start
+            global_y1 = y1 + y_start
+            global_x2 = x2 + x_start
+            global_y2 = y2 + y_start
+
+            # Single class model - always class 0 (Aircraft)
+            class_id = 0
+
+            detections.append([global_x1, global_y1, global_x2, global_y2, 
+                             float(confidence), class_id])
+
+            if tile_x == 0 and tile_y == 0 and len(detections) <= 3:
+                print(f"Added detection {len(detections)}: conf={confidence:.3f}, bbox=({global_x1:.1f},{global_y1:.1f},{global_x2:.1f},{global_y2:.1f})")
 
     return detections
 
