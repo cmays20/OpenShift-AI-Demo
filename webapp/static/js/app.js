@@ -6,6 +6,32 @@ class AirplaneDetectionApp {
         this.ctx = null;
         this.currentImage = null;
         this.startTime = null;
+
+        // Ensure buttons start in correct state
+        this.resetButtonStates();
+    }
+
+    resetButtonStates() {
+        const buttons = [this.uploadBtn, this.debugBtn, this.rawBtn].filter(btn => btn !== null);
+
+        buttons.forEach(btn => {
+            const btnText = btn.querySelector('.btn-text');
+            const btnLoader = btn.querySelector('.btn-loader');
+
+            if (btnText && btnLoader) {
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+                console.log('Reset initial state for button:', btn.id);
+            }
+        });
+
+        // Set correct initial text
+        if (this.uploadBtn) {
+            const mainBtnText = this.uploadBtn.querySelector('.btn-text');
+            if (mainBtnText) {
+                mainBtnText.textContent = 'Select Image First';
+            }
+        }
     }
 
     initializeElements() {
@@ -282,13 +308,13 @@ class AirplaneDetectionApp {
             }
 
             if (loading) {
-                btnText.hidden = true;
-                btnLoader.hidden = false;
+                btnText.style.display = 'none';
+                btnLoader.style.display = 'flex';
                 btn.disabled = true;
                 console.log('Set button to loading state:', btn.id);
             } else {
-                btnText.hidden = false;
-                btnLoader.hidden = true;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
                 btn.disabled = !this.currentImage; // Only enable if image is selected
                 console.log('Reset button from loading state:', btn.id, 'disabled:', btn.disabled);
             }
