@@ -21,7 +21,7 @@ MODEL_VERSION = os.getenv('MODEL_VERSION', '1')
 TILE_WIDTH = 512
 TILE_HEIGHT = 512
 TILE_OVERLAP = 128
-CONF_THRESHOLD = 0.01  # Adjusted for raw confidence range (0-0.055)
+CONF_THRESHOLD = 0.2  # Based on raw analysis: 17 detections per tile at 0.02 threshold
 DEBUG_CONF_THRESHOLD = 0.001  # Very low threshold for debugging
 NMS_THRESHOLD = 0.8
 
