@@ -343,6 +343,43 @@ def predict():
             image, MODEL_SERVER_URL, MODEL_NAME, MODEL_VERSION
         )
 
+        # Convert image to base64 for frontend display
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format='JPEG')
+        img_buffer.seek(0)
+        img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
+
+        # Calculate confidence level breakdown
+        high_conf = sum(1 for det in detections if det['confidence'] >= 0.7)
+        med_conf = sum(1 for det in detections if 0.5 <= det['confidence'] < 0.7)
+        low_conf = sum(1 for det in detections if 0.25 <= det['confidence'] < 0.5)
+
+        return jsonify({
+            'success': True,
+            'image': f'data:image/jpeg;base64,{img_base64}',
+            'detections': detections,
+            'image_size': original_size,
+            'inference_method': 'tiled',
+            'tile_config': {
+                'tile_size': f'{TILE_WIDTH}x{TILE_HEIGHT}',
+                'overlap': TILE_OVERLAP,
+                'confidence_threshold': CONF_THRESHOLD,
+                'nms_threshold': NMS_THRESHOLD
+            },
+            'confidence_breakdown': {
+                'high': high_conf,
+                'medium': med_conf,
+                'low': low_conf,
+                'total': len(detections)
+            }
+        })
+
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Failed to connect to model server: {str(e)}'}), 500
+    except Exception as e:
+        print(f"Prediction error: {str(e)}")
+        return jsonify({'error': f'Prediction failed: {str(e)}'}), 500
+
 @app.route('/debug-predict', methods=['POST'])
 def debug_predict():
     """Debug prediction with very low confidence threshold and detailed logging"""
