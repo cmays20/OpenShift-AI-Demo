@@ -278,6 +278,12 @@ def process_tile_predictions(model_output, x_start, y_start, tile_x, tile_y, x_t
 
     if tile_x == 0 and tile_y == 0:
         print(f"Tile (0,0): Processed {processed_count} detections above {debug_threshold}, kept {len(detections)} above {CONF_THRESHOLD}")
+        if detections:
+            confidences = [det[4] for det in detections]
+            print(f"Confidence range in detections: {min(confidences):.6f} to {max(confidences):.6f}")
+
+    if tile_x == 0 and tile_y == 0:
+        print(f"Tile (0,0): Processed {processed_count} detections above {debug_threshold}, kept {len(detections)} above {CONF_THRESHOLD}")
 
     return detections
 
@@ -287,6 +293,11 @@ def apply_nms(detections, nms_threshold=NMS_THRESHOLD, conf_threshold=CONF_THRES
         return []
 
     detections_array = np.array(detections)
+
+    print(f"NMS input: {len(detections)} detections")
+    if len(detections) > 0:
+        confidences = detections_array[:, 4]
+        print(f"Confidence range before NMS: {np.min(confidences):.6f} to {np.max(confidences):.6f}")
 
     # Extract boxes and scores
     boxes = detections_array[:, :4].tolist()
@@ -311,6 +322,12 @@ def apply_nms(detections, nms_threshold=NMS_THRESHOLD, conf_threshold=CONF_THRES
                 'class': CLASS_NAMES.get(int(detection[5]), 'Aircraft'),
                 'class_id': int(detection[5])
             })
+
+        print(f"NMS output: {len(final_detections)} detections")
+        if final_detections:
+            final_confidences = [det['confidence'] for det in final_detections]
+            print(f"Final confidence range: {min(final_confidences):.6f} to {max(final_confidences):.6f}")
+
         return final_detections
 
     return []
