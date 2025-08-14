@@ -254,15 +254,21 @@ main {
 }
 
 .btn-loader {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 10px;
+    justify-content: center;
 }
 
 .spinner {
     width: 20px;
     height: 20px;
     animation: spin 1s linear infinite;
+}
+
+/* Ensure loader is visible when shown */
+.btn .btn-loader[style*="inline-flex"] {
+    display: inline-flex !important;
 }
 
 @keyframes spin {

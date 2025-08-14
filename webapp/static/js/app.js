@@ -309,9 +309,9 @@ class AirplaneDetectionApp {
 
             if (loading) {
                 btnText.style.display = 'none';
-                btnLoader.style.display = 'flex';
+                btnLoader.style.display = 'inline-flex';
                 btn.disabled = true;
-                console.log('Set button to loading state:', btn.id);
+                console.log('Set button to loading state:', btn.id, 'btnLoader visible:', btnLoader.style.display);
             } else {
                 btnText.style.display = 'inline';
                 btnLoader.style.display = 'none';
