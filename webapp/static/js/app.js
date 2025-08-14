@@ -351,23 +351,10 @@ class AirplaneDetectionApp {
                 confLevel = 'LOW';
             }
 
-            // Draw bounding box
+            // Draw bounding box with confidence-based color (no labels)
             this.ctx.strokeStyle = strokeColor;
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(canvasX1, canvasY1, width, height);
-
-            // Draw label
-            const label = `${detection.class}: ${(detection.confidence * 100).toFixed(1)}% (${confLevel})`;
-            this.ctx.font = '14px Arial';
-            const textWidth = this.ctx.measureText(label).width;
-            const textHeight = 18;
-
-            this.ctx.fillStyle = fillColor;
-            this.ctx.fillRect(canvasX1, canvasY1 - textHeight - 4, textWidth + 8, textHeight + 4);
-
-            this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 14px Arial';
-            this.ctx.fillText(label, canvasX1 + 4, canvasY1 - 6);
         });
     }
 
@@ -469,24 +456,10 @@ class AirplaneDetectionApp {
                 confLevel = 'LOW';
             }
 
-            // Draw bounding box with confidence-based color
+            // Draw bounding box with confidence-based color (no labels)
             this.ctx.strokeStyle = strokeColor;
             this.ctx.lineWidth = 2;
             this.ctx.strokeRect(canvasX1, canvasY1, width, height);
-
-            // Draw label background
-            const label = `${detection.class}: ${(detection.confidence * 100).toFixed(1)}% (${confLevel})`;
-            this.ctx.font = '14px Arial';
-            const textWidth = this.ctx.measureText(label).width;
-            const textHeight = 18;
-
-            this.ctx.fillStyle = fillColor;
-            this.ctx.fillRect(canvasX1, canvasY1 - textHeight - 4, textWidth + 8, textHeight + 4);
-
-            // Draw label text
-            this.ctx.fillStyle = 'white';
-            this.ctx.font = 'bold 14px Arial';
-            this.ctx.fillText(label, canvasX1 + 4, canvasY1 - 6);
         });
     }
 
