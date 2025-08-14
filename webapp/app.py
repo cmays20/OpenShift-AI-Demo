@@ -21,7 +21,7 @@ MODEL_VERSION = os.getenv('MODEL_VERSION', '1')
 TILE_WIDTH = 512
 TILE_HEIGHT = 512
 TILE_OVERLAP = 128
-CONF_THRESHOLD = 0.2  # Based on raw analysis: 17 detections per tile at 0.02 threshold
+CONF_THRESHOLD = 0.05  # Based on raw analysis: only 3 detections per tile at 0.05 threshold
 DEBUG_CONF_THRESHOLD = 0.001  # Very low threshold for debugging
 NMS_THRESHOLD = 0.8
 
@@ -187,12 +187,13 @@ def process_tile_predictions(model_output, x_start, y_start, tile_x, tile_y, x_t
         if tile_x == 0 and tile_y == 0 and i < 5:
             print(f"Detection {i}: raw_conf={confidence:.6f}, coords=({x_center:.6f}, {y_center:.6f}, {width:.6f}, {height:.6f})")
 
-        # Apply sigmoid to confidence - ONNX models typically output logits
+        # Based on raw analysis, confidence values are already probabilities (0-0.055)
+        # Do NOT apply sigmoid - use raw values directly
         original_confidence = confidence
-        confidence = 1.0 / (1.0 + np.exp(-np.clip(confidence, -10, 10)))  # Sigmoid with clipping
+        # confidence = confidence  # Use raw value directly
 
         if tile_x == 0 and tile_y == 0 and i < 5:
-            print(f"  After sigmoid: {original_confidence:.6f} -> {confidence:.6f}")
+            print(f"  Using raw confidence: {confidence:.6f}")
 
         # Use a lower threshold for debugging to see if we get any detections
         debug_threshold = 0.01  # Very low threshold for debugging
