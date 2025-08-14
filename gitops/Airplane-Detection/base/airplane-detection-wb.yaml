@@ -73,6 +73,9 @@ spec:
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
             - name: PIP_CERT
               value: /etc/pki/tls/custom-certs/ca-bundle.crt
+          envFrom:
+            - secretRef:
+                name: model-storage-connection
           ports:
             - containerPort: 8888
               name: notebook-port
