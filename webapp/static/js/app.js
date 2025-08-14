@@ -6,6 +6,46 @@ class AirplaneDetectionApp {
         this.ctx = null;
         this.currentImage = null;
         this.startTime = null;
+
+        // Initialize confidence controls after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            this.initializeConfidenceControls();
+        }, 100);
+    }
+
+    initializeConfidenceControls() {
+        // Re-check for confidence control elements
+        this.showHigh = document.getElementById('showHigh');
+        this.showMedium = document.getElementById('showMedium');
+        this.showLow = document.getElementById('showLow');
+
+        console.log('Re-initialized checkbox elements:', {
+            high: !!this.showHigh,
+            medium: !!this.showMedium,
+            low: !!this.showLow
+        });
+
+        // Add event listeners if elements exist
+        if (this.showHigh) {
+            this.showHigh.addEventListener('change', () => {
+                console.log('High checkbox changed:', this.showHigh.checked);
+                this.filterDetections();
+            });
+        }
+
+        if (this.showMedium) {
+            this.showMedium.addEventListener('change', () => {
+                console.log('Medium checkbox changed:', this.showMedium.checked);
+                this.filterDetections();
+            });
+        }
+
+        if (this.showLow) {
+            this.showLow.addEventListener('change', () => {
+                console.log('Low checkbox changed:', this.showLow.checked);
+                this.filterDetections();
+            });
+        }
     }
 
     initializeElements() {
@@ -83,10 +123,34 @@ class AirplaneDetectionApp {
             }
         });
 
-        // Confidence control listeners
-        this.showHigh?.addEventListener('change', () => this.filterDetections());
-        this.showMedium?.addEventListener('change', () => this.filterDetections());
-        this.showLow?.addEventListener('change', () => this.filterDetections());
+        // Confidence control listeners with debugging
+        if (this.showHigh) {
+            this.showHigh.addEventListener('change', () => {
+                console.log('High checkbox changed:', this.showHigh.checked);
+                this.filterDetections();
+            });
+        }
+
+        if (this.showMedium) {
+            this.showMedium.addEventListener('change', () => {
+                console.log('Medium checkbox changed:', this.showMedium.checked);
+                this.filterDetections();
+            });
+        }
+
+        if (this.showLow) {
+            this.showLow.addEventListener('change', () => {
+                console.log('Low checkbox changed:', this.showLow.checked);
+                this.filterDetections();
+            });
+        }
+
+        // Debug: Check if elements were found
+        console.log('Checkbox elements found:', {
+            high: !!this.showHigh,
+            medium: !!this.showMedium,
+            low: !!this.showLow
+        });
     }
 
     handleFileSelect(file) {
@@ -289,11 +353,20 @@ class AirplaneDetectionApp {
     }
 
     filterDetections() {
-        if (!this.currentDetections || this.currentDetections.length === 0 || !this.currentImage_loaded) return;
+        console.log('filterDetections called');
+        console.log('Current detections:', this.currentDetections?.length);
+        console.log('Current image loaded:', !!this.currentImage_loaded);
+
+        if (!this.currentDetections || this.currentDetections.length === 0 || !this.currentImage_loaded) {
+            console.log('Early return from filterDetections');
+            return;
+        }
 
         const showHigh = this.showHigh?.checked !== false;
         const showMedium = this.showMedium?.checked !== false;
         const showLow = this.showLow?.checked !== false;
+
+        console.log('Filter settings:', { showHigh, showMedium, showLow });
 
         // Clear canvas and redraw from original image
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -304,6 +377,7 @@ class AirplaneDetectionApp {
 
         // Update the detection count display
         const visibleCount = this.countVisibleDetections(this.currentDetections, showHigh, showMedium, showLow);
+        console.log('Visible count:', visibleCount, 'of', this.currentDetections.length);
         this.updateDetectionCount(visibleCount, this.currentDetections.length);
     }
 
