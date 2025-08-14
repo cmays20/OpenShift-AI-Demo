@@ -21,7 +21,8 @@ MODEL_VERSION = os.getenv('MODEL_VERSION', '1')
 TILE_WIDTH = 512
 TILE_HEIGHT = 512
 TILE_OVERLAP = 128
-CONF_THRESHOLD = 0.15
+CONF_THRESHOLD = 0.15  # Original threshold
+DEBUG_CONF_THRESHOLD = 0.01  # Very low threshold for debugging
 NMS_THRESHOLD = 0.8
 
 # Class names for airplane detection
@@ -163,27 +164,62 @@ def process_tile_predictions(model_output, x_start, y_start, tile_x, tile_y, x_t
         print(f"Sample detection: {predictions[0]}")
         print(f"Sample confidence values: {predictions[:5, 4]}")  # First 5 confidence values
 
+    # Debug: Show some raw values for first tile
+    if tile_x == 0 and tile_y == 0:
+        print(f"Confidence range: min={np.min(predictions[:, 4]):.6f}, max={np.max(predictions[:, 4]):.6f}")
+        print(f"Coordinate ranges: x=[{np.min(predictions[:, 0]):.3f}, {np.max(predictions[:, 0]):.3f}], y=[{np.min(predictions[:, 1]):.3f}, {np.max(predictions[:, 1]):.3f}]")
+
+        # Show top confidence detections for debugging
+        sorted_indices = np.argsort(predictions[:, 4])[::-1]  # Sort by confidence descending
+        print("Top 10 confidence values:")
+        for i in range(min(10, len(sorted_indices))):
+            idx = sorted_indices[i]
+            conf = predictions[idx, 4]
+            print(f"  {i+1}: idx={idx}, conf={conf:.6f}")
+
     # Process each detection
+    processed_count = 0
     for i, detection in enumerate(predictions):
         # YOLO format: [x_center, y_center, width, height, confidence]
         x_center, y_center, width, height, confidence = detection
 
-        # Apply sigmoid to confidence if it appears to be raw logits
-        if confidence > 1.0:
-            confidence = 1.0 / (1.0 + np.exp(-confidence))  # Sigmoid activation
+        # Debug first few detections
+        if tile_x == 0 and tile_y == 0 and i < 5:
+            print(f"Detection {i}: raw_conf={confidence:.6f}, coords=({x_center:.6f}, {y_center:.6f}, {width:.6f}, {height:.6f})")
+
+        # Apply sigmoid to confidence - ONNX models typically output logits
+        original_confidence = confidence
+        confidence = 1.0 / (1.0 + np.exp(-np.clip(confidence, -10, 10)))  # Sigmoid with clipping
+
+        if tile_x == 0 and tile_y == 0 and i < 5:
+            print(f"  After sigmoid: {original_confidence:.6f} -> {confidence:.6f}")
+
+        # Use a lower threshold for debugging to see if we get any detections
+        debug_threshold = 0.01  # Very low threshold for debugging
 
         # Skip low confidence detections
-        if confidence < CONF_THRESHOLD:
+        if confidence < debug_threshold:
             continue
 
-        if tile_x == 0 and tile_y == 0 and len(detections) < 3:
-            print(f"Processing detection {i}: conf={confidence:.3f}, coords=({x_center:.3f}, {y_center:.3f}, {width:.3f}, {height:.3f})")
+        processed_count += 1
 
-        # Convert from normalized coordinates (0-1) to pixel coordinates
-        x_center_px = x_center * TILE_WIDTH
-        y_center_px = y_center * TILE_HEIGHT
-        width_px = width * TILE_WIDTH
-        height_px = height * TILE_HEIGHT
+        if tile_x == 0 and tile_y == 0 and processed_count <= 5:
+            print(f"Processing detection {i}: conf={confidence:.6f}, coords=({x_center:.6f}, {y_center:.6f}, {width:.6f}, {height:.6f})")
+
+        # Coordinates might already be in pixel space or normalized
+        # Check if coordinates are normalized (0-1) or already in pixels
+        if x_center <= 1.0 and y_center <= 1.0 and width <= 1.0 and height <= 1.0:
+            # Normalized coordinates - convert to pixels
+            x_center_px = x_center * TILE_WIDTH
+            y_center_px = y_center * TILE_HEIGHT
+            width_px = width * TILE_WIDTH
+            height_px = height * TILE_HEIGHT
+        else:
+            # Already in pixel coordinates
+            x_center_px = x_center
+            y_center_px = y_center
+            width_px = width
+            height_px = height
 
         # Convert to corner coordinates
         x1 = x_center_px - width_px / 2
@@ -199,20 +235,26 @@ def process_tile_predictions(model_output, x_start, y_start, tile_x, tile_y, x_t
 
         # Skip invalid boxes
         if x2 <= x1 or y2 <= y1:
+            if tile_x == 0 and tile_y == 0 and processed_count <= 5:
+                print(f"  Skipped invalid box: ({x1:.1f},{y1:.1f},{x2:.1f},{y2:.1f})")
             continue
 
-        # Apply tile filtering similar to notebook
+        # For debugging, temporarily disable margin filtering for center tiles
+        # Apply tile filtering similar to notebook  
         margin = 10
         is_center_tile = (tile_x > 0 and tile_x < x_tiles-1 and 
                         tile_y > 0 and tile_y < y_tiles-1)
 
         if is_center_tile:
-            # Center tiles - no margin needed
+            # Center tiles - no margin needed for debugging
             should_include = True
         else:
             # Edge tiles - apply margin filter
             should_include = (x1 > margin and y1 > margin and 
                             x2 < TILE_WIDTH - margin and y2 < TILE_HEIGHT - margin)
+
+        # For debugging, include everything to see what we get
+        should_include = True
 
         if should_include:
             # Convert to global image coordinates
@@ -224,11 +266,18 @@ def process_tile_predictions(model_output, x_start, y_start, tile_x, tile_y, x_t
             # Single class model - always class 0 (Aircraft)
             class_id = 0
 
-            detections.append([global_x1, global_y1, global_x2, global_y2, 
-                             float(confidence), class_id])
+            # Only add detections above the actual threshold
+            if confidence >= CONF_THRESHOLD:
+                detections.append([global_x1, global_y1, global_x2, global_y2, 
+                                 float(confidence), class_id])
 
-            if tile_x == 0 and tile_y == 0 and len(detections) <= 3:
-                print(f"Added detection {len(detections)}: conf={confidence:.3f}, bbox=({global_x1:.1f},{global_y1:.1f},{global_x2:.1f},{global_y2:.1f})")
+                if tile_x == 0 and tile_y == 0 and len(detections) <= 5:
+                    print(f"Added detection {len(detections)}: conf={confidence:.6f}, bbox=({global_x1:.1f},{global_y1:.1f},{global_x2:.1f},{global_y2:.1f})")
+            elif tile_x == 0 and tile_y == 0 and processed_count <= 5:
+                print(f"  Detection below threshold: conf={confidence:.6f} < {CONF_THRESHOLD}")
+
+    if tile_x == 0 and tile_y == 0:
+        print(f"Tile (0,0): Processed {processed_count} detections above {debug_threshold}, kept {len(detections)} above {CONF_THRESHOLD}")
 
     return detections
 
@@ -293,6 +342,65 @@ def predict():
         detections = sliding_window_inference(
             image, MODEL_SERVER_URL, MODEL_NAME, MODEL_VERSION
         )
+
+@app.route('/debug-predict', methods=['POST'])
+def debug_predict():
+    """Debug prediction with very low confidence threshold and detailed logging"""
+    global CONF_THRESHOLD
+    original_threshold = CONF_THRESHOLD
+
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image uploaded'}), 400
+
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({'error': 'No image selected'}), 400
+
+        # Load and process image
+        image = Image.open(file.stream)
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+
+        original_size = image.size
+
+        print(f"\n=== DEBUG PREDICTION MODE ===")
+        print(f"Processing image: {original_size}")
+
+        # Temporarily lower threshold for debugging
+        CONF_THRESHOLD = DEBUG_CONF_THRESHOLD
+        print(f"Using debug confidence threshold: {CONF_THRESHOLD}")
+
+        # Use sliding window inference with debug output
+        detections = sliding_window_inference(
+            image, MODEL_SERVER_URL, MODEL_NAME, MODEL_VERSION
+        )
+
+        # Restore original threshold
+        CONF_THRESHOLD = original_threshold
+
+        # Convert image to base64 for frontend display
+        img_buffer = io.BytesIO()
+        image.save(img_buffer, format='JPEG')
+        img_buffer.seek(0)
+        img_base64 = base64.b64encode(img_buffer.getvalue()).decode()
+
+        return jsonify({
+            'success': True,
+            'debug_mode': True,
+            'image': f'data:image/jpeg;base64,{img_base64}',
+            'detections': detections,
+            'image_size': original_size,
+            'debug_threshold': DEBUG_CONF_THRESHOLD,
+            'original_threshold': original_threshold,
+            'raw_detection_count': len(detections)
+        })
+
+    except Exception as e:
+        # Restore original threshold on error
+        CONF_THRESHOLD = original_threshold
+        print(f"Debug prediction error: {str(e)}")
+        return jsonify({'error': f'Debug prediction failed: {str(e)}'}), 500
 
         # Convert image to base64 for frontend display
         img_buffer = io.BytesIO()
