@@ -187,7 +187,7 @@ class AirplaneDetectionApp {
             const rawConfDiv = document.createElement('div');
             rawConfDiv.className = 'debug-item';
             rawConfDiv.innerHTML = `
-                <h4>Raw Confidence Statistics</h4>
+                <h4>Confidence Statistics (Raw Values)</h4>
                 <div class="debug-stat">
                     <span class="debug-label">Min:</span>
                     <span class="debug-value">${stats.raw_confidence.min.toFixed(6)}</span>
@@ -200,28 +200,12 @@ class AirplaneDetectionApp {
                     <span class="debug-label">Mean:</span>
                     <span class="debug-value">${stats.raw_confidence.mean.toFixed(6)}</span>
                 </div>
+                <div class="debug-stat">
+                    <span class="debug-label">Std Dev:</span>
+                    <span class="debug-value">${stats.raw_confidence.std.toFixed(6)}</span>
+                </div>
             `;
             this.debugContainer.appendChild(rawConfDiv);
-
-            // Sigmoid confidence stats
-            const sigmoidConfDiv = document.createElement('div');
-            sigmoidConfDiv.className = 'debug-item';
-            sigmoidConfDiv.innerHTML = `
-                <h4>Sigmoid Confidence Statistics</h4>
-                <div class="debug-stat">
-                    <span class="debug-label">Min:</span>
-                    <span class="debug-value">${stats.sigmoid_confidence.min.toFixed(6)}</span>
-                </div>
-                <div class="debug-stat">
-                    <span class="debug-label">Max:</span>
-                    <span class="debug-value">${stats.sigmoid_confidence.max.toFixed(6)}</span>
-                </div>
-                <div class="debug-stat">
-                    <span class="debug-label">Mean:</span>
-                    <span class="debug-value">${stats.sigmoid_confidence.mean.toFixed(6)}</span>
-                </div>
-            `;
-            this.debugContainer.appendChild(sigmoidConfDiv);
 
             // Threshold analysis
             const thresholdDiv = document.createElement('div');
