@@ -6,46 +6,6 @@ class AirplaneDetectionApp {
         this.ctx = null;
         this.currentImage = null;
         this.startTime = null;
-
-        // Initialize confidence controls after a short delay to ensure DOM is ready
-        setTimeout(() => {
-            this.initializeConfidenceControls();
-        }, 100);
-    }
-
-    initializeConfidenceControls() {
-        // Re-check for confidence control elements
-        this.showHigh = document.getElementById('showHigh');
-        this.showMedium = document.getElementById('showMedium');
-        this.showLow = document.getElementById('showLow');
-
-        console.log('Re-initialized checkbox elements:', {
-            high: !!this.showHigh,
-            medium: !!this.showMedium,
-            low: !!this.showLow
-        });
-
-        // Add event listeners if elements exist
-        if (this.showHigh) {
-            this.showHigh.addEventListener('change', () => {
-                console.log('High checkbox changed:', this.showHigh.checked);
-                this.filterDetections();
-            });
-        }
-
-        if (this.showMedium) {
-            this.showMedium.addEventListener('change', () => {
-                console.log('Medium checkbox changed:', this.showMedium.checked);
-                this.filterDetections();
-            });
-        }
-
-        if (this.showLow) {
-            this.showLow.addEventListener('change', () => {
-                console.log('Low checkbox changed:', this.showLow.checked);
-                this.filterDetections();
-            });
-        }
     }
 
     initializeElements() {
@@ -64,14 +24,14 @@ class AirplaneDetectionApp {
         this.debugInfo = document.getElementById('debugInfo');
         this.debugContainer = document.getElementById('debugContainer');
 
-        // Confidence controls
-        this.showHigh = document.getElementById('showHigh');
-        this.showMedium = document.getElementById('showMedium');
-        this.showLow = document.getElementById('showLow');
-
         // Store current detections for filtering
         this.currentDetections = [];
         this.currentImageSize = null;
+
+        // Confidence controls will be initialized when results are shown
+        this.showHigh = null;
+        this.showMedium = null;
+        this.showLow = null;
     }
 
     setupEventListeners() {
@@ -123,34 +83,7 @@ class AirplaneDetectionApp {
             }
         });
 
-        // Confidence control listeners with debugging
-        if (this.showHigh) {
-            this.showHigh.addEventListener('change', () => {
-                console.log('High checkbox changed:', this.showHigh.checked);
-                this.filterDetections();
-            });
-        }
-
-        if (this.showMedium) {
-            this.showMedium.addEventListener('change', () => {
-                console.log('Medium checkbox changed:', this.showMedium.checked);
-                this.filterDetections();
-            });
-        }
-
-        if (this.showLow) {
-            this.showLow.addEventListener('change', () => {
-                console.log('Low checkbox changed:', this.showLow.checked);
-                this.filterDetections();
-            });
-        }
-
-        // Debug: Check if elements were found
-        console.log('Checkbox elements found:', {
-            high: !!this.showHigh,
-            medium: !!this.showMedium,
-            low: !!this.showLow
-        });
+        // Confidence control listeners will be set up when results are shown
     }
 
     handleFileSelect(file) {
@@ -656,6 +589,50 @@ class AirplaneDetectionApp {
     showResults() {
         this.resultsSection.hidden = false;
         this.resultsSection.classList.add('fade-in');
+
+        // Now that results are shown, set up confidence control listeners
+        this.setupConfidenceControls();
+    }
+
+    setupConfidenceControls() {
+        // Find confidence control elements (now that they're visible)
+        this.showHigh = document.getElementById('showHigh');
+        this.showMedium = document.getElementById('showMedium');
+        this.showLow = document.getElementById('showLow');
+
+        console.log('Setting up confidence controls:', {
+            high: !!this.showHigh,
+            medium: !!this.showMedium,
+            low: !!this.showLow
+        });
+
+        // Remove existing listeners first to avoid duplicates
+        if (this.showHigh) {
+            this.showHigh.removeEventListener('change', this.handleHighChange);
+            this.handleHighChange = () => {
+                console.log('High checkbox changed:', this.showHigh.checked);
+                this.filterDetections();
+            };
+            this.showHigh.addEventListener('change', this.handleHighChange);
+        }
+
+        if (this.showMedium) {
+            this.showMedium.removeEventListener('change', this.handleMediumChange);
+            this.handleMediumChange = () => {
+                console.log('Medium checkbox changed:', this.showMedium.checked);
+                this.filterDetections();
+            };
+            this.showMedium.addEventListener('change', this.handleMediumChange);
+        }
+
+        if (this.showLow) {
+            this.showLow.removeEventListener('change', this.handleLowChange);
+            this.handleLowChange = () => {
+                console.log('Low checkbox changed:', this.showLow.checked);
+                this.filterDetections();
+            };
+            this.showLow.addEventListener('change', this.handleLowChange);
+        }
     }
 
     hideResults() {
