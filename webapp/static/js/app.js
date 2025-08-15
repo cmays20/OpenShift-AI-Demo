@@ -175,6 +175,73 @@ class AirplaneDetectionApp {
         this.ctx.drawImage(img, 0, 0, this.canvas.width, this.canvas.height);
     }
 
+    setLoading(isLoading, endpoint = '/predict') {
+        console.log('setLoading called:', isLoading, endpoint);
+
+        let targetButton;
+
+        // Determine which button to update based on endpoint
+        if (endpoint === '/debug-predict') {
+            targetButton = this.debugBtn;
+        } else if (endpoint === '/debug-raw') {
+            targetButton = this.rawBtn;
+        } else {
+            targetButton = this.uploadBtn;
+        }
+
+        if (!targetButton) {
+            console.error('Target button not found for endpoint:', endpoint);
+            return;
+        }
+
+        const btnText = targetButton.querySelector('.btn-text');
+        const btnLoader = targetButton.querySelector('.btn-loader');
+
+        if (!btnText || !btnLoader) {
+            console.error('Button elements not found:', btnText, btnLoader);
+            return;
+        }
+
+        if (isLoading) {
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline-flex';
+            targetButton.disabled = true;
+
+            // Also disable other buttons during processing
+            [this.uploadBtn, this.debugBtn, this.rawBtn].forEach(btn => {
+                if (btn && btn !== targetButton) {
+                    btn.disabled = true;
+                }
+            });
+        } else {
+            btnText.style.display = 'inline';
+            btnLoader.style.display = 'none';
+            targetButton.disabled = false;
+
+            // Re-enable other buttons
+            [this.uploadBtn, this.debugBtn, this.rawBtn].forEach(btn => {
+                if (btn) {
+                    btn.disabled = false;
+                }
+            });
+        }
+    }
+
+    updateUploadButton(hasImage) {
+        if (!this.uploadBtn) return;
+
+        const btnText = this.uploadBtn.querySelector('.btn-text');
+        if (btnText) {
+            btnText.textContent = hasImage ? 'Detect Airplanes' : 'Select Image First';
+        }
+
+        this.uploadBtn.disabled = !hasImage;
+
+        // Also update debug buttons
+        if (this.debugBtn) this.debugBtn.disabled = !hasImage;
+        if (this.rawBtn) this.rawBtn.disabled = !hasImage;
+    }
+
     async processImage(endpoint = '/predict') {
         if (!this.currentImage) return;
 
