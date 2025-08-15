@@ -667,36 +667,6 @@ class AirplaneDetectionApp {
         this.processingTime.textContent = timeText;
     }
 
-    updateUploadButton(hasFile) {
-        const btnText = this.uploadBtn.querySelector('.btn-text');
-        if (hasFile) {
-            btnText.textContent = 'Detect Airplanes';
-            this.uploadBtn.disabled = false;
-            if (this.debugBtn) this.debugBtn.disabled = false;
-            if (this.rawBtn) this.rawBtn.disabled = false;
-        } else {
-            btnText.textContent = 'Select Image First';
-            this.uploadBtn.disabled = true;
-            if (this.debugBtn) this.debugBtn.disabled = true;
-            if (this.rawBtn) this.rawBtn.disabled = true;
-        }
-    }
-
-    setLoading(loading) {
-        const btnText = this.uploadBtn.querySelector('.btn-text');
-        const btnLoader = this.uploadBtn.querySelector('.btn-loader');
-
-        if (loading) {
-            btnText.hidden = true;
-            btnLoader.hidden = false;
-            this.uploadBtn.disabled = true;
-        } else {
-            btnText.hidden = false;
-            btnLoader.hidden = true;
-            this.uploadBtn.disabled = false;
-        }
-    }
-
     showResults() {
         this.resultsSection.hidden = false;
         this.resultsSection.classList.add('fade-in');
