@@ -4,3 +4,5 @@ resources:
   - ../../nfd
   - ../../nvidia
   - ../../oauth
+  - ../../quay
+  - ../../odf

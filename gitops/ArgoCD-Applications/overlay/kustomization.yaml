@@ -6,7 +6,7 @@ configMapGenerator:
     namespace: openshift-gitops
     literals:
       - GIT_REPO_URL=https://github.com/cmays20/OpenShift-AI-Demo.git
-      - GIT_REVISION=cluster4
+      - GIT_REVISION=cluster3
 
 replacements:
   - source:
