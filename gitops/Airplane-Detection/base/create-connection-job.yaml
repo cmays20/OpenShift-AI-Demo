@@ -1,0 +1,94 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: workbench-connection-create-role
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - "*"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: workbench-connection-create-rolebinding
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: workbench-connection-create-role
+subjects:
+  - kind: ServiceAccount
+    name: workbench-connection-job-sa
+    namespace: airplane-detection
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: airplane-detection
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+  name: workbench-connection-job-sa
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-model-storage-connection
+  namespace: airplane-detection
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  template:
+    spec:
+      serviceAccountName: workbench-connection-job-sa
+      dnsPolicy: ClusterFirst
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: create-secret
+          image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              #!/bin/sh
+              set -e
+              
+              # Grab values from model-bucket Secret (base64 encoded)
+              ACCESS_KEY=$(kubectl get secret model-bucket -n airplane-detection -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+              SECRET_KEY=$(kubectl get secret model-bucket -n airplane-detection -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+              
+              # Delete existing target Secret if it exists (idempotency)
+              kubectl delete secret model-storage-connection -n airplane-detection --ignore-not-found
+              
+              # Create new Secret with required metadata and keys
+              kubectl create secret generic model-storage-connection \
+                --namespace airplane-detection \
+                --from-literal=AWS_ACCESS_KEY_ID="${ACCESS_KEY}" \
+                --from-literal=AWS_SECRET_ACCESS_KEY="${SECRET_KEY}" \
+                --from-literal=AWS_DEFAULT_REGION="us-east-1" \
+                --from-literal=AWS_S3_BUCKET="model-storage-bucket" \
+                --from-literal=AWS_S3_ENDPOINT="https://s3-openshift-storage.apps.mays-demo.sandbox1850.opentlc.com"
+              
+              # Patch metadata (labels + annotations)
+              kubectl patch secret model-storage-connection -n airplane-detection --type merge -p '{
+                "metadata": {
+                  "labels": {
+                    "opendatahub.io/dashboard": "true",
+                    "opendatahub.io/managed": "true"
+                  },
+                  "annotations": {
+                    "opendatahub.io/connection-type": "s3",
+                    "opendatahub.io/connection-type-ref": "s3",
+                    "openshift.io/description": "",
+                    "openshift.io/display-name": "model-storage-connection"
+                  }
+                }
+              }'
+              
+              echo "✅ Secret model-storage-connection created/updated."
