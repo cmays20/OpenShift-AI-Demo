@@ -14,10 +14,7 @@ metadata:
     openshift.io/description: ''
     openshift.io/display-name: airplane-detection-wb
     notebooks.opendatahub.io/last-image-selection: 'minimal-gpu:2025.1'
-    opendatahub.io/hardware-profile-namespace: ''
     notebooks.opendatahub.io/last-size-selection: Medium
-    opendatahub.io/hardware-profile-name: ''
-    opendatahub.io/workbench-image-namespace: ''
 spec:
   template:
     spec:
