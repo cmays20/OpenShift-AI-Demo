@@ -7,6 +7,8 @@ metadata:
     - kubernetes.io/pvc-protection
   labels:
     opendatahub.io/dashboard: 'true'
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   accessModes:
     - ReadWriteOnce
