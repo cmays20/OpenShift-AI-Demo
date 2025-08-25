@@ -3,8 +3,6 @@ kind: ObjectBucketClaim
 metadata:
   name: model-bucket
   namespace: airplane-detection
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   bucketName: model-storage-bucket  # Fixed name instead of generateBucketName
   storageClassName: openshift-storage.noobaa.io
