@@ -3,7 +3,7 @@ kind: ClusterRole
 metadata:
   name: workbench-connection-create-role
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
 rules:
   - apiGroups:
       - ""
@@ -17,7 +17,7 @@ kind: ClusterRoleBinding
 metadata:
   name: workbench-connection-create-rolebinding
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -32,7 +32,7 @@ kind: ServiceAccount
 metadata:
   namespace: airplane-detection
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
   name: workbench-connection-job-sa
 ---
 apiVersion: batch/v1
@@ -41,7 +41,7 @@ metadata:
   name: create-model-storage-connection
   namespace: airplane-detection
   annotations:
-    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   template:
     spec:

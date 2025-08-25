@@ -8,6 +8,7 @@ metadata:
     opendatahub.io/dashboard: 'true'
     opendatahub.io/odh-managed: 'true'
   annotations:
+    argocd.argoproj.io/sync-wave: "2"
     notebooks.opendatahub.io/inject-oauth: 'true'
     opendatahub.io/image-display-name: CUDA
     opendatahub.io/accelerator-name: nvidia-gpu
