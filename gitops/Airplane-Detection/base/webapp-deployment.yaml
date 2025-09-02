@@ -10,7 +10,6 @@ spec:
       app: airplane-detection
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: airplane-detection
         deployment: airplane-detection
@@ -23,9 +22,9 @@ spec:
               protocol: TCP
           env:
             - name: MODEL_SERVER_URL
-              value: 'http://airplane-detection-model-server-predictor.airplane-detection.svc.cluster.local:8888'
+              value: 'http://airplane-detection-model-predictor.airplane-detection.svc.cluster.local:8888'
             - name: MODEL_NAME
-              value: airplane-detection-model-server
+              value: airplane-detection-model
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File

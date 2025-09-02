@@ -3,3 +3,4 @@ resources:
   - service-account.yaml
   - connections.yaml
   - create-connection-job.yaml
+  - webapp-deployment.yaml
