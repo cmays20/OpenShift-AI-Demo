@@ -1,0 +1,44 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: airplane-detection
+  namespace: airplane-detection
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: airplane-detection
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: airplane-detection
+        deployment: airplane-detection
+    spec:
+      containers:
+        - name: airplane-detection
+          image: 'quay.io/cmays20/airplane-detection:latest'
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          env:
+            - name: MODEL_SERVER_URL
+              value: 'http://airplane-detection-model-server-predictor.airplane-detection.svc.cluster.local:8888'
+            - name: MODEL_NAME
+              value: airplane-detection-model-server
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: Always
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 30
+      dnsPolicy: ClusterFirst
+      securityContext: {}
+      schedulerName: default-scheduler
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  revisionHistoryLimit: 10
+  progressDeadlineSeconds: 600

@@ -3,23 +3,3 @@ kind: Kustomization
 
 resources:
   - ../base/
-
-patches:
-  - target:
-      group: kubeflow.org
-      version: v1
-      kind: Notebook
-      name: airplane-detection-wb
-    patch: |-
-      - op: replace
-        path: /spec/template/spec/containers/0/env/0/value
-        value: |
-          --ServerApp.port=8888
-          --ServerApp.token=''
-          --ServerApp.password=''
-          --ServerApp.base_url=/notebook/airplane-detection/airplane-detection-wb
-          --ServerApp.quit_button=False
-          --ServerApp.tornado_settings={"user":"scientist1","hub_host":"https://rhods-dashboard-redhat-ods-applications.apps.mays-demo.sandbox2138.opentlc.com","hub_prefix":"/projects/airplane-detection"}
-      - op: replace
-        path: /spec/template/spec/containers/1/args/16
-        value: '--logout-url=https://rhods-dashboard-redhat-ods-applications.apps.mays-demo.sandbox2138.opentlc.com/projects/airplane-detection?notebookLogout=airplane-detection-wb'
