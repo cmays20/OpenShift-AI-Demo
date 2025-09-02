@@ -41,3 +41,29 @@ spec:
       maxSurge: 25%
   revisionHistoryLimit: 10
   progressDeadlineSeconds: 600
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: airplane-detection
+  namespace: airplane-detection
+spec:
+  selector:
+    app: airplane-detection
+  ports:
+    - protocol: TCP
+      port: 5000
+      targetPort: 5000
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: airplane-detection
+  namespace: airplane-detection
+spec:
+  to:
+    kind: Service
+    name: airplane-detection
+  port:
+    targetPort: 5000
+---
