@@ -60,23 +60,27 @@ spec:
               set -e
               
               # Grab values from model-bucket Secret (base64 encoded)
-              ACCESS_KEY=$(kubectl get secret model-bucket -n airplane-detection -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
-              SECRET_KEY=$(kubectl get secret model-bucket -n airplane-detection -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
+              ACCESS_KEY=$(oc get secret model-bucket -n airplane-detection -o jsonpath='{.data.AWS_ACCESS_KEY_ID}' | base64 -d)
+              SECRET_KEY=$(oc get secret model-bucket -n airplane-detection -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}' | base64 -d)
               
               # Delete existing target Secret if it exists (idempotency)
-              kubectl delete secret model-storage-connection -n airplane-detection --ignore-not-found
+              oc delete secret model-storage-connection -n airplane-detection --ignore-not-found
               
+              # Get S3 endpoint from route
+              S3_ENDPOINT=$(oc get route s3 -n openshift-storage -o jsonpath='{.spec.host}')
+  
+  
               # Create new Secret with required metadata and keys
-              kubectl create secret generic model-storage-connection \
+              oc create secret generic model-storage-connection \
                 --namespace airplane-detection \
                 --from-literal=AWS_ACCESS_KEY_ID="${ACCESS_KEY}" \
                 --from-literal=AWS_SECRET_ACCESS_KEY="${SECRET_KEY}" \
                 --from-literal=AWS_DEFAULT_REGION="us-east-1" \
                 --from-literal=AWS_S3_BUCKET="model-storage-bucket" \
-                --from-literal=AWS_S3_ENDPOINT="https://s3-openshift-storage.apps.mays-demo.sandbox1850.opentlc.com"
+                --from-literal=AWS_S3_ENDPOINT="https://${S3_ENDPOINT}"
               
               # Patch metadata (labels + annotations)
-              kubectl patch secret model-storage-connection -n airplane-detection --type merge -p '{
+              oc patch secret model-storage-connection -n airplane-detection --type merge -p '{
                 "metadata": {
                   "labels": {
                     "opendatahub.io/dashboard": "true",
